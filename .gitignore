@@ -1,0 +1,134 @@
+# -----------------------------
+# Python bytecode and cache
+# -----------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+
+# -----------------------------
+# Virtual environments
+# -----------------------------
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# -----------------------------
+# Distribution / Packaging
+# -----------------------------
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# -----------------------------
+# PyInstaller
+# -----------------------------
+# Often creates build artifacts in these folders
+*.manifest
+*.spec
+
+# -----------------------------
+# Unit test / coverage reports
+# -----------------------------
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+.tox/
+.nox/
+
+# -----------------------------
+# Jupyter Notebook checkpoints
+# -----------------------------
+.ipynb_checkpoints/
+
+# -----------------------------
+# Django / Flask stuff
+# -----------------------------
+*.log
+local_settings.py
+db.sqlite3
+instance/
+.webassets-cache
+
+# -----------------------------
+# Scrapy
+# -----------------------------
+.scrapy
+
+# -----------------------------
+# Sphinx documentation
+# -----------------------------
+docs/_build/
+doc/_build/
+
+# -----------------------------
+# PyBuilder
+# -----------------------------
+target/
+
+# -----------------------------
+# IDE / Editor settings
+# -----------------------------
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# -----------------------------
+# OS-specific files
+# -----------------------------
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# -----------------------------
+# Logs and temp files
+# -----------------------------
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.orig
+
+# -----------------------------
+# MyPy / Type checker
+# -----------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# -----------------------------
+# Pyre type checker
+# -----------------------------
+.pyre/
+
+# -----------------------------
+# Pytype
+# -----------------------------
+.pytype/
+
+# -----------------------------
+# Cython debug symbols
+# -----------------------------
+cython_debug/

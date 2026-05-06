@@ -1,0 +1,20 @@
+from pydantic_settings import BaseSettings
+
+class Settings(BaseSettings):
+    PROJECT_NAME: str = "Domain Service"
+    INTERNAL_SERVICE_TOKEN: str = "internal-secret"
+    
+    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_USER: str = "postgres"
+    POSTGRES_PASSWORD: str = "postgres"
+    POSTGRES_DB: str = "acquisition"
+    
+    @property
+    def DATABASE_URI(self) -> str:
+        return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
+    
+    class Config:
+        env_file = ".env"
+        case_sensitive = True
+
+settings = Settings()
