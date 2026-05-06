@@ -25,20 +25,12 @@ async def run_agent(request: Request, data: AgentRunRequest):
 async def approve_send(request: Request, data: AgentApproveRequest):
     """
     Human-in-the-loop approval endpoint.
-    Call this after reviewing the generated campaign to authorize email dispatch.
-    In production this would resume a persisted LangGraph checkpoint.
-    For now, re-runs the agent with approved_to_send=True and the original goal.
+    Resumes a persisted LangGraph checkpoint for the given task_id.
     """
     if not data.approved:
         return {"task_id": data.task_id, "status": "rejected", "message": "Email dispatch rejected by user."}
     
-    # In a production system with a persistent DB/checkpointer, we would load the
-    # paused state and resume it. For now, we return the approval acknowledgement.
-    return {
-        "task_id": data.task_id,
-        "status": "approved",
-        "message": "Dispatch approved. Re-run the agent with approved_to_send=true to proceed."
-    }
+    return await service.resume(task_id=data.task_id, approved_to_send=True)
 
 @router.get("/{task_id}")
 async def get_task_status(task_id: str):

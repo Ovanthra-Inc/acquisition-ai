@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = "redis://localhost:6379"
     
     # Database settings (if gateway needs DB, currently it shouldn't)
-    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_SERVER: str = "db"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "acquisition"

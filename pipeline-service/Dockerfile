@@ -10,4 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY shared_lib /shared_lib
 COPY pipeline-service/app ./app
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

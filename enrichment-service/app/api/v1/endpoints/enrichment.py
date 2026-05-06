@@ -12,3 +12,7 @@ def enrich_lead(request: Request, data: EnrichRequest):
 @router.post("/score", response_model=ScoreResponse)
 def score_lead(request: Request, data: ScoreRequest):
     return service.score(data.dict())
+
+@router.post("/crawl")
+def crawl_website(request: Request, url: str):
+    return {"url": url, "text": service.crawl(url)}

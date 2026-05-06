@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     GOOGLE_CALLBACK_URL: str = "http://localhost:8000/api/v1/auth/callback/google" # API gateway URL
     
     # Database settings
-    POSTGRES_SERVER: str = "localhost" # or "postgres" in docker
+    POSTGRES_SERVER: str = "db" # or "postgres" in docker
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "acquisition"

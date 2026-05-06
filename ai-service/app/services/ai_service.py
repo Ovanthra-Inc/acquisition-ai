@@ -28,6 +28,9 @@ class AIService:
         pain_points = lead_data.get("pain_points", "scaling challenges")
         offer = user_profile.get("offer", "our services")
         
+        from langchain_core.output_parsers import JsonOutputParser
+        parser = JsonOutputParser()
+        
         prompt = PromptTemplate.from_template(
             """You are an expert B2B sales copywriter.
             Write a highly personalized, short, and engaging cold email.
@@ -38,30 +41,23 @@ class AIService:
             Lead Pain Points: {pain_points}
             Our Offer: {offer}
             
-            Return ONLY a valid JSON object with 'subject' and 'body' keys.
-            Do not include markdown blocks or any other text.
+            Return a valid JSON object with 'subject' and 'body' keys.
+            {format_instructions}
             """
         )
         
-        chain = prompt | self.llm
-        response = chain.invoke({
-            "company": company,
-            "industry": industry,
-            "pain_points": pain_points,
-            "offer": offer
-        })
+        chain = prompt | self.llm | parser
         
         try:
-            # Parse the JSON response
-            content = response.content.strip()
-            if content.startswith("```json"):
-                content = content[7:-3]
-            elif content.startswith("```"):
-                content = content[3:-3]
-                
-            return json.loads(content)
+            return chain.invoke({
+                "company": company,
+                "industry": industry,
+                "pain_points": pain_points,
+                "offer": offer,
+                "format_instructions": parser.get_format_instructions()
+            })
         except Exception as e:
-            logging.error(f"Failed to parse LLM response: {e}. Response was: {response.content}")
+            logging.error(f"Failed to parse LLM response: {e}.")
             return {
                 "subject": f"Quick question regarding {company}",
                 "body": f"Hi there,\\n\\nI noticed {company} might benefit from {offer}. Let's chat!\\n\\nBest,\\n"

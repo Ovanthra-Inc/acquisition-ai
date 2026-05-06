@@ -3,13 +3,16 @@ from fastapi import Request
 import hmac
 import hashlib
 
-def verify_internal_signature(internal_token: str, user_id: str, tenant_id: str, service_name: str, signature: str):
+def generate_internal_signature(internal_token: str, user_id: str, tenant_id: str, service_name: str) -> str:
     data = f"{user_id}:{tenant_id}:{service_name}"
-    expected = hmac.new(
+    return hmac.new(
         internal_token.encode(),
         data.encode(),
         hashlib.sha256
     ).hexdigest()
+
+def verify_internal_signature(internal_token: str, user_id: str, tenant_id: str, service_name: str, signature: str):
+    expected = generate_internal_signature(internal_token, user_id, tenant_id, service_name)
     return hmac.compare_digest(expected, signature)
 
 class InternalAuthMiddleware(BaseHTTPMiddleware):

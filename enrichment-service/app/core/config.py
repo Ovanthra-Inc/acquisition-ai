@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     INTERNAL_SERVICE_TOKEN: str = "internal-secret"
     
     # Database settings
-    POSTGRES_SERVER: str = "localhost"
+    POSTGRES_SERVER: str = "db"
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "acquisition"

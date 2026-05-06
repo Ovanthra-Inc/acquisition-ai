@@ -1,5 +1,6 @@
 import os
 from celery import Celery
+import app.tasks.scheduler_tasks
 
 broker_url = os.getenv("CELERY_BROKER_URL", "redis://redis:6379/0")
 backend_url = os.getenv("CELERY_RESULT_BACKEND", "redis://redis:6379/0")
@@ -16,4 +17,10 @@ celery_app.conf.update(
     result_serializer="json",
     timezone="UTC",
     enable_utc=True,
+    beat_schedule={
+        "poll-scheduled-jobs-every-minute": {
+            "task": "app.tasks.scheduler_tasks.poll_scheduled_jobs",
+            "schedule": 60.0,
+        },
+    },
 )

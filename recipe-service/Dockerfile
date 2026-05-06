@@ -11,4 +11,7 @@ RUN pip install -e /shared_lib
 
 COPY recipe-service/ .
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+CMD ["/usr/local/bin/docker-entrypoint.sh"]
+# CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

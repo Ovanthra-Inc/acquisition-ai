@@ -19,3 +19,12 @@ class EmailRepository:
             db.commit()
             db.refresh(log)
         return log
+
+    def mark_failed(self, db: Session, log_id: UUID, error: str):
+        log = db.query(EmailLog).filter(EmailLog.id == log_id).first()
+        if log:
+            log.status = "failed"
+            log.error = error
+            db.commit()
+            db.refresh(log)
+        return log

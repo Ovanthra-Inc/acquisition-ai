@@ -11,27 +11,34 @@ class JobRequest(BaseModel):
     run_at: datetime
     kwargs: Dict[str, Any] = {}
 
+from app.db.session import get_db
+from sqlalchemy.orm import Session
+from fastapi import Depends
+from app.models.scheduled_job import ScheduledJob
+
 @router.post("/job")
-async def schedule_job(job: JobRequest):
+async def schedule_job(job: JobRequest, db: Session = Depends(get_db)):
     """
-    Schedules a Celery task to run at a specific UTC datetime.
-    Example task_name: 'app.tasks.agent_tasks.run_agent_task'
+    Schedules a job by persisting it to the database.
+    A Celery Beat task will pick this up and execute it at the right time.
     """
     try:
-        # Send task to Celery with an ETA (Estimated Time of Arrival)
-        result = celery_app.send_task(
-            job.task_name,
-            kwargs=job.kwargs,
-            eta=job.run_at,
-            queue="agent_queue" if "agent" in job.task_name else "default"
+        db_job = ScheduledJob(
+            task_name=job.task_name,
+            run_at=job.run_at,
+            kwargs=job.kwargs
         )
+        db.add(db_job)
+        db.commit()
+        db.refresh(db_job)
+        
         return {
-            "message": "Job scheduled successfully", 
-            "job_id": result.id,
-            "run_at": job.run_at.isoformat()
+            "message": "Job persisted successfully", 
+            "job_id": str(db_job.id),
+            "run_at": db_job.run_at.isoformat()
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to schedule job: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to persist job: {str(e)}")
 
 @router.get("/jobs")
 async def list_jobs():

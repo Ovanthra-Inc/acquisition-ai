@@ -11,6 +11,7 @@ redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
 
 class EnrichmentService:
     def __init__(self):
+        from langchain_openai import ChatOpenAI
         self.llm = ChatOpenAI(
             openai_api_base="https://openrouter.ai/api/v1",
             openai_api_key=settings.OPENROUTER_API_KEY,
@@ -18,19 +19,42 @@ class EnrichmentService:
             temperature=0.0
         ) if settings.OPENROUTER_API_KEY else None
 
+    def crawl(self, url: str) -> str:
+        import httpx
+        from bs4 import BeautifulSoup
+        try:
+            response = httpx.get(url, timeout=10.0, follow_redirects=True)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, "lxml")
+            
+            # Basic cleaning: remove script and style elements
+            for script_or_style in soup(["script", "style"]):
+                script_or_style.decompose()
+                
+            text = soup.get_text(separator=" ")
+            # Basic cleaning: collapse whitespace
+            lines = (line.strip() for line in text.splitlines())
+            chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+            return " ".join(chunk for chunk in chunks if chunk)
+        except Exception as e:
+            logging.error(f"Failed to crawl {url}: {e}")
+            return f"Error crawling {url}: {str(e)}"
+
     def enrich(self, data: dict):
         website = data.get("website", "")
-        if not website:
+        website_text = data.get("website_text", "")
+        
+        if not website and not website_text:
             return {"industry": "Unknown", "description": "", "pain_points": ""}
             
-        cache_key = f"enrichment:{website}"
+        cache_key = f"enrichment:{website or hash(website_text)}"
         cached = redis_client.get(cache_key)
         if cached:
             return json.loads(cached)
         
         if not self.llm:
             logging.warning("OPENROUTER_API_KEY missing. Using fallback enrichment.")
-            industry = "SaaS Startup" if ".io" in website else "Software"
+            industry = "SaaS Startup" if website and ".io" in website else "Software"
             result = {
                 "industry": industry,
                 "description": f"Automated B2B solutions provider for {industry}",
@@ -39,23 +63,26 @@ class EnrichmentService:
             redis_client.setex(cache_key, 3600, json.dumps(result))
             return result
 
+        from langchain_core.output_parsers import JsonOutputParser
+        parser = JsonOutputParser()
+        
         prompt = PromptTemplate.from_template(
-            """Analyze the following company website URL or data to determine their industry, a short description, and likely pain points.
-            Company Website/Data: {website}
+            """Analyze the following company data to determine their industry, a short description, and likely pain points.
+            Company Website: {website}
+            Company Website Text (Scraped): {website_text}
             
-            Return ONLY a valid JSON object with 'industry', 'description', and 'pain_points' keys.
+            Return a valid JSON object with 'industry', 'description', and 'pain_points' keys.
+            {format_instructions}
             """
         )
         
-        chain = prompt | self.llm
+        chain = prompt | self.llm | parser
         try:
-            response = chain.invoke({"website": website})
-            content = response.content.strip()
-            if content.startswith("```json"):
-                content = content[7:-3]
-            elif content.startswith("```"):
-                content = content[3:-3]
-            result = json.loads(content)
+            result = chain.invoke({
+                "website": website, 
+                "website_text": website_text[:4000], # Truncate to avoid context window limits
+                "format_instructions": parser.get_format_instructions()
+            })
             redis_client.setex(cache_key, 3600, json.dumps(result))
             return result
         except Exception as e:
@@ -73,22 +100,23 @@ class EnrichmentService:
                 score += 30
             return {"score": score}
             
+        from langchain_core.output_parsers import JsonOutputParser
+        parser = JsonOutputParser()
+        
         prompt = PromptTemplate.from_template(
             """You are a Lead Scoring AI. Score the following lead from 0 to 100 based on how likely they are to be a good B2B customer.
             Lead Data: {lead_data}
             
-            Return ONLY a valid JSON object with a single 'score' key containing an integer from 0 to 100.
+            Return a valid JSON object with a single 'score' key containing an integer from 0 to 100.
+            {format_instructions}
             """
         )
-        chain = prompt | self.llm
+        chain = prompt | self.llm | parser
         try:
-            response = chain.invoke({"lead_data": json.dumps(lead_data)})
-            content = response.content.strip()
-            if content.startswith("```json"):
-                content = content[7:-3]
-            elif content.startswith("```"):
-                content = content[3:-3]
-            result = json.loads(content)
+            result = chain.invoke({
+                "lead_data": json.dumps(lead_data),
+                "format_instructions": parser.get_format_instructions()
+            })
             return {"score": int(result.get("score", 50))}
         except Exception as e:
             logging.error(f"Failed to score via LLM: {e}")

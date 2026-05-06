@@ -1,24 +1,40 @@
 from bs4 import BeautifulSoup
 import httpx
 import re
-from app.utils.auth import get_internal_headers
+from app.utils.auth import get_internal_headers, get_agent_client
 
 async def search_leads(state: dict, query: str, limit: int = 5):
-    """Hits the lead-service (or domain service) to fetch leads."""
+    """Hits the domain-service to find leads and lead-service to store/fetch them."""
     print(f"[Tool] Searching leads for: {query}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        # We simulate finding leads from our internal DB or third party by calling our own API if it existed,
-        # but for Phase 1, we just return dummy data since lead discovery is simulated for now.
-        return [
-            {"id": "11111111-1111-1111-1111-111111111111", "company_name": "TechFlow", "website": "https://techflow.example.com"},
-            {"id": "22222222-2222-2222-2222-222222222222", "company_name": "DataSync", "website": "https://datasync.example.com"}
-        ]
+    async with get_agent_client(state) as client:
+        # 1. Search domain-service (website adapter for now)
+        # In a real scenario, the agent would decide which domain to search
+        res = await client.post("http://domain-service:8000/api/v1/domains/search", json={"domain": "website", "keyword": query})
+        res.raise_for_status()
+        raw_leads = res.json().get("results", [])
+        
+        # 2. Store found leads in lead-service (Phase 1 wiring)
+        stored_leads = []
+        for lead in raw_leads[:limit]:
+            try:
+                # We need to provide user_id and tenant_id but get_agent_client already handles headers
+                l_res = await client.post("http://lead-service:8000/api/v1/leads/", json=lead)
+                l_res.raise_for_status()
+                stored_leads.append(l_res.json())
+            except Exception as e:
+                print(f"Failed to store lead {lead.get('company_name')}: {e}")
+                # Fallback to the raw lead if storage fails
+                stored_leads.append(lead)
+                
+        return stored_leads
 
 async def crawl_website(state: dict, url: str):
-    """Stub: Simulates crawling a website to extract raw text."""
+    """Hits enrichment-service to crawl a website."""
     print(f"[Tool] Crawling website: {url}")
-    return f"We are a leading B2B company providing solutions for {url}..."
+    async with get_agent_client(state) as client:
+        res = await client.post(f"http://enrichment-service:8000/api/v1/enrichment/crawl?url={url}")
+        res.raise_for_status()
+        return res.json().get("text", "")
 
 def extract_contact_info(text: str):
     """Extracts email addresses from text using regex."""
@@ -31,17 +47,15 @@ def extract_contact_info(text: str):
 
 async def enrich_lead(state: dict, lead_data: dict):
     print(f"[Tool] Enriching lead: {lead_data.get('company_name')}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/enrich", json=lead_data, headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/enrich", json=lead_data)
         res.raise_for_status()
         return res.json()
 
 async def score_lead(state: dict, lead_data: dict):
     print(f"[Tool] Scoring lead: {lead_data.get('company_name')}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/score", json={"lead_data": lead_data}, headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/score", json={"lead_data": lead_data})
         res.raise_for_status()
         return res.json().get("score", 0)
 
@@ -55,66 +69,60 @@ async def fetch_replies(state: dict):
 
 async def classify_reply(state: dict, reply_text: str):
     print(f"[Tool] Classifying reply...")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.post("http://conversation-service:8000/api/v1/conversations/classify", json={"message_text": reply_text}, headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.post("http://conversation-service:8000/api/v1/conversations/classify", json={"message_text": reply_text})
         res.raise_for_status()
         return res.json().get("classification", "neutral")
 
 async def get_metrics(state: dict):
     print("[Tool] Fetching analytics metrics...")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.get("http://analytics-service:8000/api/v1/analytics/overview", headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.get("http://analytics-service:8000/api/v1/analytics/overview")
         res.raise_for_status()
         return res.json()
 
 async def track_event(state: dict, event_type: str, metadata: dict):
     print(f"[Tool] Tracking event: {event_type}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         payload = {
             "event_type": event_type,
             "metadata": metadata
         }
-        res = await client.post("http://analytics-service:8000/api/v1/analytics/track", json=payload, headers=headers)
+        res = await client.post("http://analytics-service:8000/api/v1/analytics/track", json=payload)
         res.raise_for_status()
         return res.json()
 
 async def generate_email(state: dict, lead_data: dict):
     print(f"[Tool] Generating email for {lead_data.get('company_name')}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         payload = {
             "lead_data": lead_data,
             "user_profile": {"offer": "Our AI automation services"}
         }
-        res = await client.post("http://ai-service:8000/api/v1/ai/generate-email", json=payload, headers=headers)
+        res = await client.post("http://ai-service:8000/api/v1/ai/generate-email", json=payload)
         res.raise_for_status()
         return res.json()
 
 async def create_campaign(state: dict, leads: list):
     print(f"[Tool] Creating campaign with {len(leads)} leads")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         # Create campaign
-        res = await client.post("http://campaign-service:8000/api/v1/campaigns/", json={"name": "Auto Agent Campaign"}, headers=headers)
+        res = await client.post("http://campaign-service:8000/api/v1/campaigns/", json={"name": "Auto Agent Campaign"})
         res.raise_for_status()
         campaign = res.json()
         
         # Add leads
         lead_ids = [lead.get("id") for lead in leads if lead.get("id")]
         if lead_ids:
-            res_add = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign['id']}/add-leads", json={"lead_ids": lead_ids}, headers=headers)
+            res_add = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign['id']}/add-leads", json={"lead_ids": lead_ids})
             res_add.raise_for_status()
             
         return campaign
 
 async def send_email(state: dict, campaign_id: str):
     print(f"[Tool] Initiating send for campaign {campaign_id}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign_id}/send", headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign_id}/send")
         res.raise_for_status()
         return res.json()
 
@@ -122,8 +130,7 @@ async def send_email(state: dict, campaign_id: str):
 async def run_recipe(state: dict, recipe_id: str, context: dict = {}):
     """Trigger a recipe execution via recipe-service."""
     print(f"[Tool] Running recipe {recipe_id}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             f"http://recipe-service:8000/api/v1/recipes/{recipe_id}/execute",
             json={"context": context},
@@ -135,8 +142,7 @@ async def run_recipe(state: dict, recipe_id: str, context: dict = {}):
 async def execute_step(state: dict, step_name: str, step_context: dict = {}):
     """Execute a single named step by running the agent with a targeted plan."""
     print(f"[Tool] Executing single step: {step_name}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    async with get_agent_client(state) as client:
         payload = {
             "goal": f"Execute single step: {step_name}",
             "approved_to_send": state.get("approved_to_send", False)
@@ -189,8 +195,7 @@ async def retry_job(state: dict, task_name: str, args: list = [], delay_seconds:
 # --- PHASE 4 TOOLS ---
 async def search_domain(state: dict, domain: str, keyword: str):
     print(f"[Tool] Searching domain {domain} for {keyword}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             "http://domain-service:8000/api/v1/domains/search",
             json={"domain": domain, "keyword": keyword},
@@ -201,16 +206,14 @@ async def search_domain(state: dict, domain: str, keyword: str):
 
 async def detect_signal(state: dict, lead_id: str):
     print(f"[Tool] Detecting signal for lead {lead_id}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
-        res = await client.get(f"http://domain-service:8000/api/v1/signals/{lead_id}", headers=headers)
+    async with get_agent_client(state) as client:
+        res = await client.get(f"http://domain-service:8000/api/v1/signals/{lead_id}")
         res.raise_for_status()
         return res.json()
 
 async def merge_lead_data(state: dict, lead_id: str, domains: list):
     print(f"[Tool] Merging lead data from {domains}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             "http://domain-service:8000/api/v1/domains/merge",
             json={"lead_id": lead_id, "domains": domains},
@@ -227,8 +230,7 @@ async def index_search_data(state: dict, lead_data: dict):
 # --- PHASE 5 TOOLS ---
 async def check_reputation(state: dict, domain: str):
     print(f"[Tool] Checking reputation for {domain}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.get(
             f"http://deliverability-service:8000/api/v1/deliverability/reputation/{domain}",
             headers=headers
@@ -240,8 +242,7 @@ async def check_reputation(state: dict, domain: str):
 
 async def warmup_domain(state: dict, domain: str):
     print(f"[Tool] Initiating warmup for {domain}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             "http://deliverability-service:8000/api/v1/deliverability/warmup",
             json={"domain": domain},
@@ -272,8 +273,7 @@ async def rotate_proxy(state: dict):
 # --- PHASE 6 TOOLS ---
 async def run_ab_test(state: dict, campaign_id: str, variants: list):
     print(f"[Tool] Running A/B test for campaign {campaign_id} with {len(variants)} variants")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         # Create experiment
         res_exp = await client.post(
             "http://experimentation-service:8000/api/v1/experiment/",
@@ -303,8 +303,7 @@ async def generate_recommendation(state: dict, user_id: str):
 
 async def store_learning(state: dict, key: str, value: dict, score: float):
     print(f"[Tool] Storing learning for {key} with score {score}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             "http://learning-service:8000/api/v1/learning/memory",
             json={"key": key, "value": value, "score": score},
@@ -324,8 +323,7 @@ async def optimize_sequence(state: dict, campaign_id: str):
 # --- PHASE 7 TOOLS ---
 async def create_workspace(state: dict, org_id: str, name: str):
     print(f"[Tool] Creating workspace {name} for organization {org_id}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
             "http://organization-service:8000/api/v1/organizations/",
             json={"name": name, "plan": "pro"},
@@ -352,13 +350,12 @@ async def validate_policy(state: dict, org_id: str, action: str, data: dict):
 
 async def log_audit_event(state: dict, org_id: str, user_id: str, action: str):
     print(f"[Tool] Logging audit event {action} for user {user_id}")
-    headers = get_internal_headers(state)
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         payload = {
             "action": action,
             "metadata": {"org_id": org_id}
         }
-        res = await client.post("http://audit-service:8000/api/v1/audit/", json=payload, headers=headers)
+        res = await client.post("http://audit-service:8000/api/v1/audit/", json=payload)
         res.raise_for_status()
         return res.json()
 
