@@ -16,5 +16,12 @@ class CampaignResponse(BaseModel):
     class Config:
         orm_mode = True
 
+from typing import List, Optional
+
+class LeadPersonalization(BaseModel):
+    lead_id: UUID
+    personalized_subject: Optional[str] = None
+    personalized_body: Optional[str] = None
+
 class AddLeadsRequest(BaseModel):
-    lead_ids: List[UUID]
+    leads: List[LeadPersonalization]

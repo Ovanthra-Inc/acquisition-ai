@@ -13,9 +13,9 @@ class EnrichmentService:
     def __init__(self):
         from langchain_openai import ChatOpenAI
         self.llm = ChatOpenAI(
-            openai_api_base="https://openrouter.ai/api/v1",
-            openai_api_key=settings.OPENROUTER_API_KEY,
-            model_name="openai/gpt-3.5-turbo",
+            base_url="https://openrouter.ai/api/v1",
+            api_key=settings.OPENROUTER_API_KEY or "dummy_key",
+            model="openai/gpt-3.5-turbo",
             temperature=0.0
         ) if settings.OPENROUTER_API_KEY else None
 

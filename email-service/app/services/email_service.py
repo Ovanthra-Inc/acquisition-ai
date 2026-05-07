@@ -20,10 +20,11 @@ class EmailService:
         
         domain = to_email.split("@")[-1]
         
-        async def check_reputation():
-            async with get_internal_client(settings.INTERNAL_SERVICE_TOKEN, "system", "system", "email-service") as client:
+        def check_reputation():
+            from acquisition_core.client import get_sync_internal_client
+            with get_sync_internal_client(settings.INTERNAL_SERVICE_TOKEN, "system", "system", "email-service") as client:
                 try:
-                    res = await client.get(f"http://deliverability-service:8000/api/v1/deliverability/reputation/{domain}")
+                    res = client.get(f"{settings.DELIVERABILITY_SERVICE_URL}/api/v1/deliverability/reputation/{domain}")
                     if res.status_code == 200:
                         rep = res.json()
                         if rep.get("status") == "critical":
@@ -32,8 +33,7 @@ class EmailService:
                 except:
                     return True # Fallback to true if service is down
 
-        # Run async check in sync method
-        if not asyncio.run(check_reputation()):
+        if not check_reputation():
             print(f"Aborting send to {to_email} due to critical domain reputation.")
             return self.repo.mark_failed(db, log.id, "Critical domain reputation")
 

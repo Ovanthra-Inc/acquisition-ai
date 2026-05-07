@@ -19,10 +19,11 @@ class CampaignRepository:
         return db.query(Campaign).filter(Campaign.id == campaign_id).first()
 
     def get_campaign_leads(self, db: Session, campaign_id: UUID):
-        """Get campaign_leads with email from leads table via raw join."""
+        """Get campaign_leads with email and personalization from leads table via raw join."""
         result = db.execute(
             text("""
-                SELECT cl.id, cl.campaign_id, cl.lead_id, cl.email_sent, cl.replied, l.email
+                SELECT cl.id, cl.campaign_id, cl.lead_id, cl.email_sent, cl.replied, 
+                       cl.personalized_subject, cl.personalized_body, l.email
                 FROM campaign_leads cl
                 LEFT JOIN leads l ON cl.lead_id = l.id
                 WHERE cl.campaign_id = :cid
@@ -31,10 +32,15 @@ class CampaignRepository:
         ).fetchall()
         return result
 
-    def add_leads(self, db: Session, campaign_id: UUID, lead_ids: List[UUID]):
+    def add_leads(self, db: Session, campaign_id: UUID, leads_data: List[dict]):
         campaign_leads = []
-        for lead_id in lead_ids:
-            cl = CampaignLead(campaign_id=campaign_id, lead_id=lead_id)
+        for lead in leads_data:
+            cl = CampaignLead(
+                campaign_id=campaign_id, 
+                lead_id=lead["lead_id"],
+                personalized_subject=lead.get("personalized_subject"),
+                personalized_body=lead.get("personalized_body")
+            )
             db.add(cl)
             campaign_leads.append(cl)
         db.commit()

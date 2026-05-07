@@ -14,6 +14,10 @@ class Settings(BaseSettings):
     def DATABASE_URI(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
     
+    INTERNAL_SERVICE_TOKEN: str = "supersecrettoken"
+    AGENT_SERVICE_URL: str = "http://agent-service:8000"
+    SCHEDULER_SERVICE_URL: str = "http://scheduler-service:8000"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

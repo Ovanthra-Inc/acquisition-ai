@@ -21,7 +21,9 @@ def get_campaigns(request: Request, db: Session = Depends(get_db)):
 @router.post("/{campaign_id}/add-leads")
 def add_leads(request: Request, campaign_id: UUID, data: AddLeadsRequest, db: Session = Depends(get_db)):
     user_id = UUID(request.state.user_id)
-    return service.attach_leads(db, campaign_id, data.lead_ids)
+    # Convert Pydantic models to dicts for the service layer
+    leads_data = [lead.dict() for lead in data.leads]
+    return service.attach_leads(db, campaign_id, leads_data)
 
 @router.post("/{campaign_id}/send")
 def send_campaign(request: Request, campaign_id: UUID, db: Session = Depends(get_db)):

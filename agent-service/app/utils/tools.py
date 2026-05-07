@@ -2,14 +2,14 @@ from bs4 import BeautifulSoup
 import httpx
 import re
 from app.utils.auth import get_internal_headers, get_agent_client
+from app.core.config import settings
 
 async def search_leads(state: dict, query: str, limit: int = 5):
     """Hits the domain-service to find leads and lead-service to store/fetch them."""
     print(f"[Tool] Searching leads for: {query}")
     async with get_agent_client(state) as client:
         # 1. Search domain-service (website adapter for now)
-        # In a real scenario, the agent would decide which domain to search
-        res = await client.post("http://domain-service:8000/api/v1/domains/search", json={"domain": "website", "keyword": query})
+        res = await client.post(f"{settings.DOMAIN_SERVICE_URL}/api/v1/domains/search", json={"domain": "website", "keyword": query})
         res.raise_for_status()
         raw_leads = res.json().get("results", [])
         
@@ -18,7 +18,7 @@ async def search_leads(state: dict, query: str, limit: int = 5):
         for lead in raw_leads[:limit]:
             try:
                 # We need to provide user_id and tenant_id but get_agent_client already handles headers
-                l_res = await client.post("http://lead-service:8000/api/v1/leads/", json=lead)
+                l_res = await client.post(f"{settings.LEAD_SERVICE_URL}/api/v1/leads/", json=lead)
                 l_res.raise_for_status()
                 stored_leads.append(l_res.json())
             except Exception as e:
@@ -32,7 +32,7 @@ async def crawl_website(state: dict, url: str):
     """Hits enrichment-service to crawl a website."""
     print(f"[Tool] Crawling website: {url}")
     async with get_agent_client(state) as client:
-        res = await client.post(f"http://enrichment-service:8000/api/v1/enrichment/crawl?url={url}")
+        res = await client.post(f"{settings.ENRICHMENT_SERVICE_URL}/api/v1/enrichment/crawl?url={url}")
         res.raise_for_status()
         return res.json().get("text", "")
 
@@ -48,14 +48,14 @@ def extract_contact_info(text: str):
 async def enrich_lead(state: dict, lead_data: dict):
     print(f"[Tool] Enriching lead: {lead_data.get('company_name')}")
     async with get_agent_client(state) as client:
-        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/enrich", json=lead_data)
+        res = await client.post(f"{settings.ENRICHMENT_SERVICE_URL}/api/v1/enrichment/enrich", json=lead_data)
         res.raise_for_status()
         return res.json()
 
 async def score_lead(state: dict, lead_data: dict):
     print(f"[Tool] Scoring lead: {lead_data.get('company_name')}")
     async with get_agent_client(state) as client:
-        res = await client.post("http://enrichment-service:8000/api/v1/enrichment/score", json={"lead_data": lead_data})
+        res = await client.post(f"{settings.ENRICHMENT_SERVICE_URL}/api/v1/enrichment/score", json={"lead_data": lead_data})
         res.raise_for_status()
         return res.json().get("score", 0)
 
@@ -70,14 +70,14 @@ async def fetch_replies(state: dict):
 async def classify_reply(state: dict, reply_text: str):
     print(f"[Tool] Classifying reply...")
     async with get_agent_client(state) as client:
-        res = await client.post("http://conversation-service:8000/api/v1/conversations/classify", json={"message_text": reply_text})
+        res = await client.post(f"{settings.CONVERSATION_SERVICE_URL}/api/v1/conversations/classify", json={"message_text": reply_text})
         res.raise_for_status()
         return res.json().get("classification", "neutral")
 
 async def get_metrics(state: dict):
     print("[Tool] Fetching analytics metrics...")
     async with get_agent_client(state) as client:
-        res = await client.get("http://analytics-service:8000/api/v1/analytics/overview")
+        res = await client.get(f"{settings.ANALYTICS_SERVICE_URL}/api/v1/analytics/overview")
         res.raise_for_status()
         return res.json()
 
@@ -88,7 +88,7 @@ async def track_event(state: dict, event_type: str, metadata: dict):
             "event_type": event_type,
             "metadata": metadata
         }
-        res = await client.post("http://analytics-service:8000/api/v1/analytics/track", json=payload)
+        res = await client.post(f"{settings.ANALYTICS_SERVICE_URL}/api/v1/analytics/track", json=payload)
         res.raise_for_status()
         return res.json()
 
@@ -99,22 +99,36 @@ async def generate_email(state: dict, lead_data: dict):
             "lead_data": lead_data,
             "user_profile": {"offer": "Our AI automation services"}
         }
-        res = await client.post("http://ai-service:8000/api/v1/ai/generate-email", json=payload)
+        res = await client.post(f"{settings.AI_SERVICE_URL}/api/v1/ai/generate-email", json=payload)
         res.raise_for_status()
         return res.json()
 
 async def create_campaign(state: dict, leads: list):
     print(f"[Tool] Creating campaign with {len(leads)} leads")
     async with get_agent_client(state) as client:
-        # Create campaign
-        res = await client.post("http://campaign-service:8000/api/v1/campaigns/", json={"name": "Auto Agent Campaign"})
+        # 1. Create campaign
+        res = await client.post(f"{settings.CAMPAIGN_SERVICE_URL}/api/v1/campaigns/", json={"name": "Auto Agent Campaign"})
         res.raise_for_status()
         campaign = res.json()
         
-        # Add leads
-        lead_ids = [lead.get("id") for lead in leads if lead.get("id")]
-        if lead_ids:
-            res_add = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign['id']}/add-leads", json={"lead_ids": lead_ids})
+        # 2. Add leads with personalization
+        leads_payload = []
+        for lead in leads:
+            lead_id = lead.get("id")
+            if lead_id:
+                # The agent state stores generated email per lead
+                email_draft = lead.get("generated_email", {})
+                leads_payload.append({
+                    "lead_id": lead_id,
+                    "personalized_subject": email_draft.get("subject"),
+                    "personalized_body": email_draft.get("body")
+                })
+        
+        if leads_payload:
+            res_add = await client.post(
+                f"{settings.CAMPAIGN_SERVICE_URL}/api/v1/campaigns/{campaign['id']}/add-leads", 
+                json={"leads": leads_payload}
+            )
             res_add.raise_for_status()
             
         return campaign
@@ -122,7 +136,7 @@ async def create_campaign(state: dict, leads: list):
 async def send_email(state: dict, campaign_id: str):
     print(f"[Tool] Initiating send for campaign {campaign_id}")
     async with get_agent_client(state) as client:
-        res = await client.post(f"http://campaign-service:8000/api/v1/campaigns/{campaign_id}/send")
+        res = await client.post(f"{settings.CAMPAIGN_SERVICE_URL}/api/v1/campaigns/{campaign_id}/send")
         res.raise_for_status()
         return res.json()
 
@@ -132,9 +146,8 @@ async def run_recipe(state: dict, recipe_id: str, context: dict = {}):
     print(f"[Tool] Running recipe {recipe_id}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            f"http://recipe-service:8000/api/v1/recipes/{recipe_id}/execute",
-            json={"context": context},
-            headers=headers
+            f"{settings.RECIPE_SERVICE_URL}/api/v1/recipes/{recipe_id}/execute",
+            json={"context": context}
         )
         res.raise_for_status()
         return res.json()
@@ -148,9 +161,8 @@ async def execute_step(state: dict, step_name: str, step_context: dict = {}):
             "approved_to_send": state.get("approved_to_send", False)
         }
         res = await client.post(
-            "http://agent-service:8000/api/v1/agent/run",
-            json=payload,
-            headers=headers
+            f"{settings.AGENT_SERVICE_URL}/api/v1/agent/run" if hasattr(settings, "AGENT_SERVICE_URL") else "http://agent-service:8000/api/v1/agent/run",
+            json=payload
         )
         res.raise_for_status()
         return res.json()
@@ -158,8 +170,6 @@ async def execute_step(state: dict, step_name: str, step_context: dict = {}):
 async def schedule_job(state: dict, recipe_id: str, cron_expression: str = "0 9 * * 1"):
     """Schedule a recipe for recurring execution."""
     print(f"[Tool] Scheduling recipe {recipe_id} via scheduler-service")
-    headers = get_internal_headers(state)
-    
     import datetime
     run_at = (datetime.datetime.utcnow() + datetime.timedelta(days=1)).isoformat()
     
@@ -169,11 +179,10 @@ async def schedule_job(state: dict, recipe_id: str, cron_expression: str = "0 9 
         "kwargs": {"recipe_id": recipe_id, "context": {}}
     }
     
-    async with httpx.AsyncClient() as client:
+    async with get_agent_client(state) as client:
         res = await client.post(
-            "http://scheduler-service:8000/api/v1/scheduler/job",
-            json=payload,
-            headers=headers
+            f"{settings.SCHEDULER_SERVICE_URL}/api/v1/scheduler/job",
+            json=payload
         )
         res.raise_for_status()
         return res.json()
@@ -197,9 +206,8 @@ async def search_domain(state: dict, domain: str, keyword: str):
     print(f"[Tool] Searching domain {domain} for {keyword}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            "http://domain-service:8000/api/v1/domains/search",
-            json={"domain": domain, "keyword": keyword},
-            headers=headers
+            f"{settings.DOMAIN_SERVICE_URL}/api/v1/domains/search",
+            json={"domain": domain, "keyword": keyword}
         )
         res.raise_for_status()
         return res.json().get("results", [])
@@ -207,7 +215,7 @@ async def search_domain(state: dict, domain: str, keyword: str):
 async def detect_signal(state: dict, lead_id: str):
     print(f"[Tool] Detecting signal for lead {lead_id}")
     async with get_agent_client(state) as client:
-        res = await client.get(f"http://domain-service:8000/api/v1/signals/{lead_id}")
+        res = await client.get(f"{settings.DOMAIN_SERVICE_URL}/api/v1/signals/{lead_id}")
         res.raise_for_status()
         return res.json()
 
@@ -215,9 +223,8 @@ async def merge_lead_data(state: dict, lead_id: str, domains: list):
     print(f"[Tool] Merging lead data from {domains}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            "http://domain-service:8000/api/v1/domains/merge",
-            json={"lead_id": lead_id, "domains": domains},
-            headers=headers
+            f"{settings.DOMAIN_SERVICE_URL}/api/v1/domains/merge",
+            json={"lead_id": lead_id, "domains": domains}
         )
         res.raise_for_status()
         return res.json()
@@ -232,8 +239,7 @@ async def check_reputation(state: dict, domain: str):
     print(f"[Tool] Checking reputation for {domain}")
     async with get_agent_client(state) as client:
         res = await client.get(
-            f"http://deliverability-service:8000/api/v1/deliverability/reputation/{domain}",
-            headers=headers
+            f"{settings.DELIVERABILITY_SERVICE_URL}/api/v1/deliverability/reputation/{domain}"
         )
         if res.status_code in (404, 503):
             return {"domain": domain, "score": 95.0, "status": "healthy", "note": "stub fallback"}
@@ -244,9 +250,8 @@ async def warmup_domain(state: dict, domain: str):
     print(f"[Tool] Initiating warmup for {domain}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            "http://deliverability-service:8000/api/v1/deliverability/warmup",
-            json={"domain": domain},
-            headers=headers
+            f"{settings.DELIVERABILITY_SERVICE_URL}/api/v1/deliverability/warmup",
+            json={"domain": domain}
         )
         if res.status_code in (404, 503):
             return {"domain": domain, "status": "warming_up", "note": "stub fallback"}
@@ -276,9 +281,8 @@ async def run_ab_test(state: dict, campaign_id: str, variants: list):
     async with get_agent_client(state) as client:
         # Create experiment
         res_exp = await client.post(
-            "http://experimentation-service:8000/api/v1/experiment/",
-            json={"campaign_id": campaign_id, "experiment_type": "ab_test"},
-            headers=headers
+            f"{settings.EXPERIMENT_SERVICE_URL}/api/v1/experiment/",
+            json={"campaign_id": campaign_id, "experiment_type": "ab_test"}
         )
         res_exp.raise_for_status()
         exp_id = res_exp.json().get("id")
@@ -286,9 +290,8 @@ async def run_ab_test(state: dict, campaign_id: str, variants: list):
         # Add variants
         for v in variants:
             await client.post(
-                "http://experimentation-service:8000/api/v1/experiment/variants",
-                json={"experiment_id": exp_id, "variant_name": v.get("name", "variant"), "configuration": v},
-                headers=headers
+                f"{settings.EXPERIMENT_SERVICE_URL}/api/v1/experiment/variants",
+                json={"experiment_id": exp_id, "variant_name": v.get("name", "variant"), "configuration": v}
             )
             
         return {"experiment_id": exp_id, "status": "running"}
@@ -305,9 +308,8 @@ async def store_learning(state: dict, key: str, value: dict, score: float):
     print(f"[Tool] Storing learning for {key} with score {score}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            "http://learning-service:8000/api/v1/learning/memory",
-            json={"key": key, "value": value, "score": score},
-            headers=headers
+            f"{settings.LEARNING_SERVICE_URL}/api/v1/learning/memory",
+            json={"key": key, "value": value, "score": score}
         )
         res.raise_for_status()
         return res.json()
@@ -325,9 +327,8 @@ async def create_workspace(state: dict, org_id: str, name: str):
     print(f"[Tool] Creating workspace {name} for organization {org_id}")
     async with get_agent_client(state) as client:
         res = await client.post(
-            "http://organization-service:8000/api/v1/organizations/",
-            json={"name": name, "plan": "pro"},
-            headers=headers
+            f"{settings.ORGANIZATION_SERVICE_URL}/api/v1/organizations/",
+            json={"name": name, "plan": "pro"}
         )
         res.raise_for_status()
         return res.json()
@@ -355,7 +356,7 @@ async def log_audit_event(state: dict, org_id: str, user_id: str, action: str):
             "action": action,
             "metadata": {"org_id": org_id}
         }
-        res = await client.post("http://audit-service:8000/api/v1/audit/", json=payload)
+        res = await client.post(f"{settings.AUDIT_SERVICE_URL}/api/v1/audit/", json=payload)
         res.raise_for_status()
         return res.json()
 

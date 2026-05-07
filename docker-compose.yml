@@ -1,4 +1,3 @@
-version: '3.8'
 
 services:
   db:
@@ -30,6 +29,18 @@ services:
       - redis
     volumes:
       - ./api-gateway/app:/app/app
+      - ./shared_lib:/shared_lib
+
+  bff-service:
+    build:
+      context: .
+      dockerfile: bff-service/Dockerfile
+    environment:
+      - POSTGRES_SERVER=db
+    depends_on:
+      - db
+    volumes:
+      - ./bff-service/app:/app/app
       - ./shared_lib:/shared_lib
 
   auth-service:
@@ -86,6 +97,7 @@ services:
       dockerfile: ai-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
     volumes:
@@ -138,6 +150,7 @@ services:
       - redis
     volumes:
       - ./worker/app:/app/app
+      - ./shared_lib:/shared_lib
 
   scheduler-service:
     build:
@@ -152,6 +165,18 @@ services:
     volumes:
       - ./scheduler-service/app:/app/app
       - ./shared_lib:/shared_lib
+
+  scheduler-beat:
+    build:
+      context: .
+      dockerfile: scheduler-service/Dockerfile
+    command: ["celery", "-A", "app.core.celery_app", "beat", "--loglevel=info"]
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - POSTGRES_SERVER=db
+    depends_on:
+      - redis
+      - db
 
   deliverability-service:
     build:
@@ -187,6 +212,7 @@ services:
       dockerfile: enrichment-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
     volumes:

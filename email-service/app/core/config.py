@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     def DATABASE_URI(self) -> str:
         return f"postgresql://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
     
+    INTERNAL_SERVICE_TOKEN: str = "supersecrettoken"
+    DELIVERABILITY_SERVICE_URL: str = "http://deliverability-service:8000"
+
     class Config:
         env_file = ".env"
         case_sensitive = True

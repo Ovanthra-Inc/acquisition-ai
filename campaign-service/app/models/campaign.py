@@ -20,5 +20,7 @@ class CampaignLead(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     campaign_id = Column(UUID(as_uuid=True), nullable=False)
     lead_id = Column(UUID(as_uuid=True), nullable=False)
+    personalized_subject = Column(String, nullable=True)
+    personalized_body = Column(String, nullable=True)
     email_sent = Column(Boolean, default=False)
     replied = Column(Boolean, default=False)

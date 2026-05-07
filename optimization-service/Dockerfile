@@ -2,14 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-COPY requirements.txt .
+COPY optimization-service/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy shared library first
 COPY shared_lib /shared_lib
 RUN pip install -e /shared_lib
 
-COPY app ./app
+COPY optimization-service/ .
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh

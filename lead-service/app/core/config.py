@@ -3,6 +3,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     PROJECT_NAME: str = "Lead Service"
     API_V1_STR: str = "/api/v1"
+    INTERNAL_SERVICE_TOKEN: str = "your_default_token"
     
     # Database settings
     POSTGRES_SERVER: str = "db"

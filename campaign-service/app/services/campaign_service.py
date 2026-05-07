@@ -26,9 +26,9 @@ class CampaignService:
             return None
         return campaign
 
-    def attach_leads(self, db: Session, campaign_id: UUID, lead_ids: List[UUID]):
-        self.repo.add_leads(db, campaign_id, lead_ids)
-        return {"message": f"Added {len(lead_ids)} leads to campaign"}
+    def attach_leads(self, db: Session, campaign_id: UUID, leads_data: List[dict]):
+        self.repo.add_leads(db, campaign_id, leads_data)
+        return {"message": f"Added {len(leads_data)} leads to campaign"}
 
     def send_campaign(self, db: Session, campaign_id: UUID, user_id: UUID):
         """Enqueue emails for all leads attached to this campaign."""
@@ -47,14 +47,18 @@ class CampaignService:
         enqueued = 0
         for cl in campaign_leads:
             if not cl.email_sent:
+                # Use personalized content if available, fallback to generic
+                subject = cl.personalized_subject or f"Campaign: {campaign.name}"
+                body = cl.personalized_body or f"Hello from {campaign.name}"
+                
                 _celery_app.send_task(
                     "app.tasks.email_tasks.send_email_task",
                     args=[
                         str(campaign_id), 
                         str(cl.lead_id), 
                         cl.email or "unknown@example.com",
-                        f"Campaign: {campaign.name}",  # Subject — in production, use AI-generated
-                        f"Hello from {campaign.name}"   # Body — in production, use AI-generated
+                        subject,
+                        body
                     ],
                     queue="email-queue"
                 )

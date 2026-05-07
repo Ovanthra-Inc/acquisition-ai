@@ -26,9 +26,8 @@ for _ in range(30):
 "
 echo "Postgres is up!"
 
-# Not all containers need alembic (e.g. worker, api-gateway might not have a db folder).
-# Only run if alembic.ini exists or alembic commands are available in the app.
-if [ -d "app/db" ] && grep -q "alembic" requirements.txt 2>/dev/null; then
+# Only run if alembic.ini exists (indicating it's an alembic project)
+if [ -f "alembic.ini" ]; then
     echo "Running migrations..."
     # Suppress error if it fails because some services don't have alembic configured yet
     alembic upgrade head || echo "Alembic upgrade skipped or failed."

@@ -1,39 +1,28 @@
 from app.core.celery_app import celery_app
 import httpx
-import os
-import hmac
-import hashlib
 import logging
+from app.core.config import settings
+from acquisition_core.middleware.internal_auth import generate_internal_signature
 
-INTERNAL_TOKEN = os.getenv("INTERNAL_SERVICE_TOKEN", "internal-secret")
-
-def generate_agent_task_signature():
-    data = "worker:system:worker"
-    return hmac.new(INTERNAL_TOKEN.encode(), data.encode(), hashlib.sha256).hexdigest()
-
-def get_internal_headers():
-    return {
-        "Authorization": f"Bearer {INTERNAL_TOKEN}",
-        "X-User-Id": "worker",
-        "X-Tenant-Id": "system",
-        "X-Service-Name": "worker",
-        "X-Request-Signature": generate_agent_task_signature(),
-    }
 
 @celery_app.task(name="app.tasks.agent_tasks.run_recipe_steps", bind=True, max_retries=3, default_retry_delay=60)
 def run_recipe_steps(self, recipe_id: str, steps: list, context: dict, user_id: str):
     """
     Phase 3: Async recipe execution via Celery.
     Triggers the agent-service to run a planned set of steps.
-    This allows fully automated, scheduled recipe execution without user input.
     """
+
     logging.info(f"[Worker] Executing recipe {recipe_id} with steps: {steps}")
     
-    headers = get_internal_headers()
-    
-    # Override user context from recipe execution
-    if user_id:
-        headers["X-User-Id"] = user_id
+    # Sign request as worker
+    sig = generate_internal_signature(settings.INTERNAL_SERVICE_TOKEN, "worker", "system", "worker")
+    headers = {
+        "Authorization": f"Bearer {settings.INTERNAL_SERVICE_TOKEN}",
+        "X-User-Id": user_id or "worker",
+        "X-Tenant-Id": "system",
+        "X-Service-Name": "worker",
+        "X-Request-Signature": sig,
+    }
     
     payload = {
         "goal": f"Execute recipe steps: {', '.join(steps)}",
@@ -43,7 +32,7 @@ def run_recipe_steps(self, recipe_id: str, steps: list, context: dict, user_id: 
     try:
         with httpx.Client(timeout=60.0) as client:
             res = client.post(
-                "http://agent-service:8000/api/v1/agent/run",
+                f"{settings.AGENT_SERVICE_URL}/api/v1/agent/run",
                 json=payload,
                 headers=headers
             )

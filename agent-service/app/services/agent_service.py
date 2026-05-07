@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, END
 from app.core.state_manager import AgentState
 from app.core.planner import PlannerNode
 from app.core.executor import ExecutorNode, should_continue
-from langgraph.checkpoint.redis import RedisSaver
+from langgraph.checkpoint.memory import MemorySaver
 from app.core.config import settings
 import uuid
 from typing import Dict, Any, Optional
@@ -30,8 +30,8 @@ class AgentService:
             }
         )
         
-        # Compile graph with Redis checkpointer for persistence
-        self.checkpointer = RedisSaver.from_conn_string(settings.REDIS_URL)
+        # Compile graph with Memory checkpointer for persistence
+        self.checkpointer = MemorySaver()
         self.app = self.graph.compile(checkpointer=self.checkpointer)
 
     async def run(self, goal: str, user_id: str, tenant_id: str, signature: str, internal_token: str, approved_to_send: bool = False, task_id: Optional[str] = None) -> Dict[str, Any]:

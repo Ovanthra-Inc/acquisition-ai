@@ -23,7 +23,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.db.base import Base
 
-from app.models.security import AbuseEvent
+from app.models.security import AbuseEvent, RateLimit
 
 target_metadata = Base.metadata
 
