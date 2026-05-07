@@ -2,9 +2,26 @@ import redis
 import json
 import os
 import logging
+import socket
+import ipaddress
+from urllib.parse import urlparse
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from app.core.config import settings
+
+def is_safe_url(url: str) -> bool:
+    try:
+        parsed = urlparse(url)
+        hostname = parsed.hostname
+        if not hostname:
+            return False
+        ip_str = socket.gethostbyname(hostname)
+        ip = ipaddress.ip_address(ip_str)
+        if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast:
+            return False
+        return True
+    except Exception:
+        return False
 
 redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
 redis_client = redis.Redis.from_url(redis_url, decode_responses=True)
@@ -20,6 +37,10 @@ class EnrichmentService:
         ) if settings.OPENROUTER_API_KEY else None
 
     def crawl(self, url: str) -> str:
+        if not is_safe_url(url):
+            logging.error(f"Security: Blocked SSRF attempt to unsafe URL: {url}")
+            return f"Error: The URL '{url}' is restricted."
+
         import httpx
         from bs4 import BeautifulSoup
         try:

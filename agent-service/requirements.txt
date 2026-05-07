@@ -14,4 +14,5 @@ langchain-community
 langgraph
 celery
 redis
-langgraph-checkpoint-redis
+langgraph-checkpoint-postgres
+psycopg[binary,pool]

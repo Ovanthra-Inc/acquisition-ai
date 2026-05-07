@@ -1,4 +1,6 @@
 from fastapi import APIRouter, Request
+from fastapi.responses import StreamingResponse
+from starlette.background import BackgroundTask
 import httpx
 from app.utils.signature import generate_signature
 from app.core.config import settings
@@ -81,20 +83,32 @@ async def proxy(request: Request, path: str):
         "X-Forwarded-For": request.client.host if request.client else "",
     })
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        # Avoid passing the client request body if GET
-        body = await request.body()
-        if request.method in ["GET", "HEAD"]:
-            body = None
-            
-        response = await client.request(
-            request.method,
-            target_url,
-            headers=headers,
-            content=body,
-            params=request.query_params
-        )
+    client = httpx.AsyncClient(timeout=60.0)
+    
+    # Avoid passing the client request body if GET
+    content = request.stream() if request.method not in ["GET", "HEAD"] else None
+    
+    req = client.build_request(
+        request.method,
+        target_url,
+        headers=headers,
+        content=content,
+        params=request.query_params
+    )
+    
+    response = await client.send(req, stream=True)
+    
+    # Exclude headers that might cause issues when proxying
+    excluded_headers = ["content-encoding", "content-length", "transfer-encoding", "connection"]
+    response_headers = {k: v for k, v in response.headers.items() if k.lower() not in excluded_headers}
 
-    # Return the exact status code and content from downstream
-    from fastapi.responses import Response
-    return Response(content=response.content, status_code=response.status_code, headers=dict(response.headers))
+    async def aclose_client():
+        await response.aclose()
+        await client.aclose()
+
+    return StreamingResponse(
+        response.aiter_raw(),
+        status_code=response.status_code,
+        headers=response_headers,
+        background=BackgroundTask(aclose_client)
+    )

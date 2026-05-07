@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, END
 from app.core.state_manager import AgentState
 from app.core.planner import PlannerNode
 from app.core.executor import ExecutorNode, should_continue
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
 from app.core.config import settings
 import uuid
 from typing import Dict, Any, Optional
@@ -30,10 +30,8 @@ class AgentService:
             }
         )
         
-        # Compile graph with Memory checkpointer for persistence
-        self.checkpointer = MemorySaver()
-        self.app = self.graph.compile(checkpointer=self.checkpointer)
-
+        # Graph is compiled dynamically within run and resume
+        pass
     async def run(self, goal: str, user_id: str, tenant_id: str, signature: str, internal_token: str, approved_to_send: bool = False, task_id: Optional[str] = None) -> Dict[str, Any]:
         task_id = task_id or str(uuid.uuid4())
         config = {"configurable": {"thread_id": task_id}}
@@ -54,8 +52,12 @@ class AgentService:
         }
         
         try:
-            final_state = await self.app.ainvoke(initial_state, config=config)
-            return self._format_response(task_id, final_state)
+            db_uri = settings.DATABASE_URI.replace("postgresql://", "postgresql+psycopg://") if "postgresql://" in settings.DATABASE_URI else settings.DATABASE_URI
+            async with AsyncPostgresSaver.from_conn_string(db_uri) as checkpointer:
+                await checkpointer.setup()
+                app = self.graph.compile(checkpointer=checkpointer)
+                final_state = await app.ainvoke(initial_state, config=config)
+                return self._format_response(task_id, final_state)
         except Exception as e:
             return {"task_id": task_id, "status": "failed", "error": str(e)}
 
@@ -63,13 +65,17 @@ class AgentService:
         """Resumes a paused agent execution."""
         config = {"configurable": {"thread_id": task_id}}
         try:
-            # When resuming, we only want to update the 'approved_to_send' flag
-            # LangGraph will pick up from the last checkpoint
-            final_state = await self.app.ainvoke(
-                {"approved_to_send": approved_to_send}, 
-                config=config
-            )
-            return self._format_response(task_id, final_state)
+            db_uri = settings.DATABASE_URI.replace("postgresql://", "postgresql+psycopg://") if "postgresql://" in settings.DATABASE_URI else settings.DATABASE_URI
+            async with AsyncPostgresSaver.from_conn_string(db_uri) as checkpointer:
+                await checkpointer.setup()
+                app = self.graph.compile(checkpointer=checkpointer)
+                # When resuming, we only want to update the 'approved_to_send' flag
+                # LangGraph will pick up from the last checkpoint
+                final_state = await app.ainvoke(
+                    {"approved_to_send": approved_to_send}, 
+                    config=config
+                )
+                return self._format_response(task_id, final_state)
         except Exception as e:
             return {"task_id": task_id, "status": "failed", "error": str(e)}
 
