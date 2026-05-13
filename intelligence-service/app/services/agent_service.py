@@ -2,7 +2,7 @@ from langgraph.graph import StateGraph, END
 from app.core.state_manager import AgentState
 from app.core.planner import PlannerNode
 from app.core.executor import ExecutorNode, should_continue
-from langgraph.checkpoint.redis.aio import RedisSaver
+from langgraph.checkpoint.redis.aio import AsyncRedisSaver
 from app.core.config import settings
 import uuid
 from typing import Dict, Any, Optional
@@ -50,7 +50,8 @@ class AgentService:
         }
         
         try:
-            async with RedisSaver.from_conn_string(settings.REDIS_URL) as checkpointer:
+            async with AsyncRedisSaver.from_conn_string(settings.REDIS_URL) as checkpointer:
+                await checkpointer.asetup()
                 app = self.graph.compile(checkpointer=checkpointer)
                 final_state = await app.ainvoke(initial_state, config=config)
                 return self._format_response(task_id, final_state)
@@ -61,7 +62,8 @@ class AgentService:
         """Resumes a paused agent execution."""
         config = {"configurable": {"thread_id": task_id}}
         try:
-            async with RedisSaver.from_conn_string(settings.REDIS_URL) as checkpointer:
+            async with AsyncRedisSaver.from_conn_string(settings.REDIS_URL) as checkpointer:
+                await checkpointer.asetup()
                 app = self.graph.compile(checkpointer=checkpointer)
                 # When resuming, we only want to update the 'approved_to_send' flag
                 final_state = await app.ainvoke(

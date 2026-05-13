@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "acquisition"
     ALEMBIC_VERSION_TABLE: str = "alembic_version_marketing_service"
+    OPENAI_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = ""
     
     @property
     def DATABASE_URI(self) -> str:

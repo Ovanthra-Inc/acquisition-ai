@@ -30,10 +30,23 @@ echo "Postgres is up!"
 if [ -f "alembic.ini" ]; then
     echo "Running migrations..."
     # Suppress error if it fails because some services don't have alembic configured yet
-    alembic upgrade head || echo "Alembic upgrade skipped or failed."
+    if command -v alembic >/dev/null 2>&1; then
+        alembic upgrade head || echo "Alembic upgrade skipped or failed."
+    else
+        python -m alembic upgrade head || echo "Alembic upgrade skipped or failed."
+    fi
 else
     echo "Skipping migrations (not an alembic project)"
 fi
 
 echo "Starting service..."
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+if [ $# -gt 0 ]; then
+    exec "$@"
+else
+    # Check if uvicorn is in path, if not try calling as python module
+    if command -v uvicorn >/dev/null 2>&1; then
+        exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+    else
+        exec python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+    fi
+fi

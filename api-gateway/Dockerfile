@@ -13,5 +13,5 @@ COPY api-gateway/ .
 
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-CMD ["/usr/local/bin/docker-entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 # CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
