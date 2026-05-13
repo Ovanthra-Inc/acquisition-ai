@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Acquisition Analytics Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-container": "#316bf3",
+                      "error": "#ba1a1a",
+                      "inverse-surface": "#2d3133",
+                      "primary": "#000000",
+                      "on-tertiary-container": "#009668",
+                      "on-primary-fixed": "#131b2e",
+                      "on-background": "#191c1e",
+                      "tertiary-container": "#002113",
+                      "outline-variant": "#c6c6cd",
+                      "on-tertiary": "#ffffff",
+                      "secondary-fixed": "#dbe1ff",
+                      "on-tertiary-fixed": "#002113",
+                      "surface-container-low": "#f2f4f6",
+                      "outline": "#76777d",
+                      "primary-fixed": "#dae2fd",
+                      "surface-container": "#eceef0",
+                      "error-container": "#ffdad6",
+                      "surface-bright": "#f7f9fb",
+                      "secondary-fixed-dim": "#b4c5ff",
+                      "surface-variant": "#e0e3e5",
+                      "surface-dim": "#d8dadc",
+                      "secondary": "#0051d5",
+                      "on-secondary-fixed-variant": "#003ea8",
+                      "primary-container": "#131b2e",
+                      "surface-container-highest": "#e0e3e5",
+                      "on-surface-variant": "#45464d",
+                      "on-surface": "#191c1e",
+                      "on-primary": "#ffffff",
+                      "tertiary": "#000000",
+                      "surface-tint": "#565e74",
+                      "surface": "#f7f9fb",
+                      "on-secondary-container": "#fefcff",
+                      "on-primary-container": "#7c839b",
+                      "inverse-primary": "#bec6e0",
+                      "on-secondary-fixed": "#00174b",
+                      "primary-fixed-dim": "#bec6e0",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "surface-container-high": "#e6e8ea",
+                      "on-secondary": "#ffffff",
+                      "background": "#f7f9fb",
+                      "on-primary-fixed-variant": "#3f465c",
+                      "tertiary-fixed": "#6ffbbe",
+                      "on-error-container": "#93000a",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "on-error": "#ffffff",
+                      "inverse-on-surface": "#eff1f3"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-page": "32px",
+                      "stack-lg": "24px",
+                      "gutter": "24px",
+                      "container-max": "1440px",
+                      "stack-md": "16px",
+                      "stack-sm": "8px",
+                      "sidebar-width": "260px"
+              },
+              "fontFamily": {
+                      "body-sm": [
+                              "Inter"
+                      ],
+                      "metric-lg": [
+                              "Inter"
+                      ],
+                      "label-caps": [
+                              "Inter"
+                      ],
+                      "heading-md": [
+                              "Inter"
+                      ],
+                      "display-xl": [
+                              "Inter"
+                      ],
+                      "body-base": [
+                              "Inter"
+                      ]
+              },
+              "fontSize": {
+                      "body-sm": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "fontWeight": "400"
+                              }
+                      ],
+                      "metric-lg": [
+                              "30px",
+                              {
+                                      "lineHeight": "38px",
+                                      "letterSpacing": "-0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "label-caps": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.05em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "heading-md": [
+                              "20px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "display-xl": [
+                              "36px",
+                              {
+                                      "lineHeight": "44px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-base": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "400"
+                              }
+                      ]
+              }
+      },
+          },
+        }
+      </script>
+<style>
+        .material-symbols-outlined {
+          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+          font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+      </style>
+</head>
+<body class="bg-background text-on-background font-body-base antialiased flex min-h-screen">
+<!-- SideNavBar -->
+<nav class="bg-inverse-surface dark:bg-primary-container text-secondary-fixed dark:text-secondary-fixed-dim font-body-sm text-body-sm fixed left-0 top-0 h-screen w-sidebar-width no-border shadow-xl flex flex-col h-full py-stack-lg z-50 md:flex hidden">
+<div class="px-6 mb-8">
+<h1 class="font-heading-md text-heading-md font-black text-secondary-fixed">Acquisition.ai</h1>
+</div>
+<div class="flex items-center px-6 mb-8">
+<div class="w-10 h-10 rounded-full bg-surface-variant overflow-hidden mr-3 shrink-0">
+<img alt="Organization Logo" class="w-full h-full object-cover" data-alt="A clean, modern corporate logo placeholder image. It features a subtle geometric design in a light setting, fitting seamlessly into a high-end corporate dashboard. The overall tone is professional and understated, emphasizing reliability and structure without drawing too much attention. The lighting is soft and neutral, enhancing the clean corporate aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCk5HknzHsX6J0pjpJKMnEc6X8FhrqlqaO2RmzlmptnxnE7oYPysC0wNeVoaGQQI1_u5Z6iBj_5rX637lw1A6-Aytcd_gi0IRy3R2SV_FOYy1dJ67cHE-01pjouLn-8Bjdo_V8-9a2Qa3J4hXmW-_20ACziOrcWoMY675fFAX0WAjkIhobMsb7pzco96yB2E3YxbVK-zNEmoRaucOBNAQooePD2K3K8G03ICADL5nFaWMxa5Kk54AzGtu5oVHl3EjiOafDO3MfN3fo"/>
+</div>
+<div>
+<p class="font-body-base text-body-base font-semibold text-surface-container-lowest">Acquisition HQ</p>
+<p class="font-body-sm text-body-sm text-outline-variant">Enterprise Plan</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto mt-4">
+<ul class="space-y-1">
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">dashboard</span>
+                        Dashboard
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">auto_awesome</span>
+                        Recipes
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">person_search</span>
+                        Leads
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">campaign</span>
+                        Campaigns
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">forum</span>
+                        Conversations
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">account_tree</span>
+                        Pipeline
+                    </a>
+</li>
+<li>
+<a class="flex items-center bg-secondary-container/20 text-on-secondary-container border-l-4 border-secondary py-3 px-4 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">analytics</span>
+                        Analytics
+                    </a>
+</li>
+<li>
+<a class="flex items-center text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined mr-3">settings</span>
+                        Settings
+                    </a>
+</li>
+</ul>
+</div>
+<div class="px-6 mt-auto pt-6 border-t border-surface-tint/30">
+<button class="w-full bg-secondary text-on-primary font-body-sm text-body-sm py-2 px-4 rounded-DEFAULT hover:bg-on-secondary-fixed-variant transition-colors flex items-center justify-center gap-2">
+                Upgrade Power
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-h-screen md:ml-sidebar-width">
+<!-- TopAppBar (Mobile Only - representing Top Nav fallback if needed, but normally Sidebar handles nav. We'll include a simple header for the main content area) -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low text-secondary dark:text-secondary-fixed font-body-base text-body-base border-b border-outline-variant dark:border-outline shadow-sm flex justify-between items-center px-margin-page py-3 sticky top-0 z-40 h-16">
+<div class="flex items-center gap-4">
+<button class="md:hidden text-on-surface">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<h2 class="font-heading-md text-heading-md font-bold text-on-surface dark:text-inverse-on-surface">Analytics</h2>
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="hidden sm:flex gap-2">
+<button class="border border-secondary text-secondary font-body-sm text-body-sm py-1.5 px-4 rounded-DEFAULT hover:bg-secondary/5 transition-colors">Add Leads</button>
+<button class="bg-secondary text-on-primary font-body-sm text-body-sm py-1.5 px-4 rounded-DEFAULT hover:bg-on-secondary-fixed-variant transition-colors shadow-sm">Run Recipe</button>
+</div>
+<div class="w-8 h-8 rounded-full bg-surface-variant overflow-hidden shrink-0 ml-2">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A small, circular headshot of a professional user for a dashboard profile picture. The lighting is soft and natural, presenting a clean and polished appearance suitable for a high-end corporate application. The background is blurred to keep focus on the subject, aligning with a modern, light-mode UI aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuADzwWDP_gDG2-LkTTPVVlcNV37iT3m05-2Y5V_mviRROA20kXEVe85n0sA6y4uCnjn1x7c104o-27OaRmq_8ztT33OdgEdx0SnB3p0X4x-oe8VKSd2xe_LrEZQDpD0viOAsxCOV2j9KpgkzjrMjxzm_jP-oy5RoLjTsgx4sWWLXZxCrdxoT62vJtYb_idGrpC5NzqztjwABlUEd2eNVDWdtx964wDHXBuQO1Wo8M8LkwrfwDfg1cdIjpaRloRuuNpz_oUoqq9TRF0"/>
+</div>
+</div>
+</header>
+<main class="flex-1 p-margin-page overflow-x-hidden max-w-container-max mx-auto w-full">
+<!-- Top Row: Metric Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-gutter mb-stack-lg">
+<!-- Total Leads Card -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Total Leads</span>
+<div class="bg-tertiary-fixed-dim/20 text-on-tertiary-fixed-variant px-2 py-0.5 rounded text-xs font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> 12.5%
+                        </div>
+</div>
+<div>
+<div class="font-metric-lg text-metric-lg text-on-surface mb-2">24,592</div>
+<!-- Simple CSS Sparkline representation -->
+<div class="h-10 w-full flex items-end gap-1 opacity-80">
+<div class="w-full bg-secondary-container h-[20%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[35%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[25%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[50%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[45%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[70%] rounded-t-sm"></div>
+<div class="w-full bg-secondary-container h-[60%] rounded-t-sm"></div>
+<div class="w-full bg-secondary h-[90%] rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Email Open Rate -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Email Open Rate</span>
+<span class="material-symbols-outlined text-outline-variant">mail_lock</span>
+</div>
+<div>
+<div class="font-metric-lg text-metric-lg text-on-surface mb-1">42.8%</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Avg. across all active campaigns</p>
+</div>
+</div>
+<!-- Reply Rate -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Reply Rate</span>
+<span class="material-symbols-outlined text-outline-variant">forum</span>
+</div>
+<div>
+<div class="font-metric-lg text-metric-lg text-on-surface mb-1">8.4%</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">+1.2% from last month</p>
+</div>
+</div>
+<!-- Revenue Generated -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow p-6 flex flex-col justify-between">
+<div class="flex justify-between items-start mb-4">
+<span class="font-label-caps text-label-caps text-on-surface-variant uppercase">Revenue Generated</span>
+<span class="material-symbols-outlined text-outline-variant">payments</span>
+</div>
+<div>
+<div class="font-metric-lg text-metric-lg text-on-surface mb-1">$1.2M</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Estimated pipeline value</p>
+</div>
+</div>
+</div>
+<!-- Middle Section: Large Line Chart (Acquisition over time) -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow mb-stack-lg flex flex-col h-96">
+<div class="p-6 border-b border-surface-variant flex justify-between items-center">
+<div>
+<h3 class="font-heading-md text-heading-md text-on-surface">Lead Acquisition Velocity</h3>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Trailing 30 Days</p>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-sm bg-surface-container text-on-surface rounded font-medium">7D</button>
+<button class="px-3 py-1 text-sm bg-secondary text-on-primary rounded font-medium">30D</button>
+<button class="px-3 py-1 text-sm bg-surface-container text-on-surface rounded font-medium">90D</button>
+</div>
+</div>
+<div class="flex-1 p-6 relative">
+<!-- Faux Line Chart Visualization -->
+<div class="absolute inset-0 p-6 flex items-end">
+<div class="w-full h-full relative border-l border-b border-outline-variant/30">
+<!-- Grid lines -->
+<div class="absolute w-full h-px bg-outline-variant/20 bottom-1/4"></div>
+<div class="absolute w-full h-px bg-outline-variant/20 bottom-2/4"></div>
+<div class="absolute w-full h-px bg-outline-variant/20 bottom-3/4"></div>
+<!-- Fake Line (SVG) -->
+<svg class="absolute w-full h-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path class="vector-path" d="M0,80 Q10,70 20,60 T40,50 T60,30 T80,40 T100,10" fill="none" stroke="#0051d5" stroke-width="2"></path>
+<path d="M0,100 L0,80 Q10,70 20,60 T40,50 T60,30 T80,40 T100,10 L100,100 Z" fill="url(#blue-gradient)" opacity="0.2"></path>
+<defs>
+<lineargradient id="blue-gradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0051d5"></stop>
+<stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Section: Bento Grid Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Conversion by Channel (Bar Chart) -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow col-span-1 lg:col-span-2 flex flex-col">
+<div class="p-6 border-b border-surface-variant">
+<h3 class="font-heading-md text-heading-md text-on-surface">Conversion by Channel</h3>
+</div>
+<div class="p-6 flex-1 flex flex-col justify-end gap-4">
+<!-- Horizontal Bar Items -->
+<div class="space-y-4">
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface font-semibold">Cold Email (Sequence A)</span>
+<span class="text-on-surface-variant">45%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary h-full rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface font-semibold">LinkedIn Outreach</span>
+<span class="text-on-surface-variant">32%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-secondary-container h-full rounded-full" style="width: 32%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface font-semibold">Webinars (Organic)</span>
+<span class="text-on-surface-variant">15%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-primary-fixed-dim h-full rounded-full" style="width: 15%"></div>
+</div>
+</div>
+<div>
+<div class="flex justify-between font-body-sm text-body-sm mb-1">
+<span class="text-on-surface font-semibold">Direct Mail</span>
+<span class="text-on-surface-variant">8%</span>
+</div>
+<div class="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+<div class="bg-outline-variant h-full rounded-full" style="width: 8%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Top Performing Recipes List -->
+<div class="bg-surface-container-lowest rounded-lg border border-surface-variant card-shadow col-span-1 flex flex-col">
+<div class="p-6 border-b border-surface-variant">
+<h3 class="font-heading-md text-heading-md text-on-surface">Top Recipes</h3>
+</div>
+<div class="p-0 flex-1 overflow-y-auto">
+<ul class="divide-y divide-surface-variant">
+<li class="p-4 hover:bg-surface-bright transition-colors flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+</div>
+<div>
+<p class="font-body-base text-body-base font-semibold text-on-surface">SaaS Founders Q3</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Auto-enrich &amp; Email</p>
+</div>
+</div>
+<span class="font-body-sm text-body-sm font-semibold text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-1 rounded">18% Conv</span>
+</li>
+<li class="p-4 hover:bg-surface-bright transition-colors flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">precision_manufacturing</span>
+</div>
+<div>
+<p class="font-body-base text-body-base font-semibold text-on-surface">Manufacturing Execs</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">LinkedIn + Call</p>
+</div>
+</div>
+<span class="font-body-sm text-body-sm font-semibold text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-1 rounded">12% Conv</span>
+</li>
+<li class="p-4 hover:bg-surface-bright transition-colors flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed">
+<span class="material-symbols-outlined text-sm">storefront</span>
+</div>
+<div>
+<p class="font-body-base text-body-base font-semibold text-on-surface">Retail Chains D2C</p>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Multi-channel drip</p>
+</div>
+</div>
+<span class="font-body-sm text-body-sm font-semibold text-on-tertiary-container bg-tertiary-fixed-dim/20 px-2 py-1 rounded">9% Conv</span>
+</li>
+<li class="p-4 hover:bg-surface-bright transition-colors flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-surface-container flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">add</span>
+</div>
+<div>
+<p class="font-body-base text-body-base font-medium text-secondary">Create New Recipe</p>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

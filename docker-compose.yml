@@ -8,6 +8,8 @@ services:
       POSTGRES_DB: acquisition
     ports:
       - "5432:5432"
+    env_file:
+      - .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
@@ -27,117 +29,67 @@ services:
       - POSTGRES_SERVER=db
     depends_on:
       - redis
+    env_file:
+      - .env
     volumes:
       - ./api-gateway/app:/app/app
       - ./shared_lib:/shared_lib
 
-  bff-service:
+  identity-service:
     build:
       context: .
-      dockerfile: bff-service/Dockerfile
+      dockerfile: identity-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
     depends_on:
       - db
+    env_file:
+      - .env
     volumes:
-      - ./bff-service/app:/app/app
+      - ./identity-service/app:/app/app
       - ./shared_lib:/shared_lib
 
-  auth-service:
+  marketing-service:
     build:
       context: .
-      dockerfile: auth-service/Dockerfile
+      dockerfile: marketing-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
     depends_on:
       - db
+    env_file:
+      - .env
     volumes:
-      - ./auth-service/app:/app/app
+      - ./marketing-service/app:/app/app
       - ./shared_lib:/shared_lib
 
-  lead-service:
+  intelligence-service:
     build:
       context: .
-      dockerfile: lead-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./lead-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  user-service:
-    build:
-      context: .
-      dockerfile: user-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./user-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  campaign-service:
-    build:
-      context: .
-      dockerfile: campaign-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./campaign-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  ai-service:
-    build:
-      context: .
-      dockerfile: ai-service/Dockerfile
+      dockerfile: intelligence-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
+    env_file:
+      - .env
     volumes:
-      - ./ai-service/app:/app/app
+      - ./intelligence-service/app:/app/app
       - ./shared_lib:/shared_lib
 
-  agent-service:
+  comms-service:
     build:
       context: .
-      dockerfile: agent-service/Dockerfile
+      dockerfile: comms-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
     depends_on:
       - db
+    env_file:
+      - .env
     volumes:
-      - ./agent-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  email-service:
-    build:
-      context: .
-      dockerfile: email-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./email-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  recipe-service:
-    build:
-      context: .
-      dockerfile: recipe-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./recipe-service/app:/app/app
+      - ./comms-service/app:/app/app
       - ./shared_lib:/shared_lib
 
   worker:
@@ -148,6 +100,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
     depends_on:
       - redis
+    env_file:
+      - .env
     volumes:
       - ./worker/app:/app/app
       - ./shared_lib:/shared_lib
@@ -162,6 +116,8 @@ services:
     depends_on:
       - redis
       - db
+    env_file:
+      - .env
     volumes:
       - ./scheduler-service/app:/app/app
       - ./shared_lib:/shared_lib
@@ -178,285 +134,62 @@ services:
       - redis
       - db
 
-  deliverability-service:
+  ops-service:
     build:
       context: .
-      dockerfile: deliverability-service/Dockerfile
+      dockerfile: ops-service/Dockerfile
     environment:
-      - REDIS_URL=redis://redis:6379/0
       - POSTGRES_SERVER=db
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
-      - redis
       - db
+      - redis
+    env_file:
+      - .env
     volumes:
-      - ./deliverability-service/app:/app/app
+      - ./ops-service/app:/app/app
       - ./shared_lib:/shared_lib
 
-  security-service:
+  inbound-service:
     build:
       context: .
-      dockerfile: security-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./security-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  enrichment-service:
-    build:
-      context: .
-      dockerfile: enrichment-service/Dockerfile
+      dockerfile: inbound-service/Dockerfile
     environment:
       - POSTGRES_SERVER=db
       - OPENAI_API_KEY=${OPENAI_API_KEY}
     depends_on:
       - db
+    env_file:
+      - .env
     volumes:
-      - ./enrichment-service/app:/app/app
+      - ./inbound-service/app:/app/app
       - ./shared_lib:/shared_lib
 
-  conversation-service:
+  client:
     build:
-      context: .
-      dockerfile: conversation-service/Dockerfile
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
     environment:
-      - POSTGRES_SERVER=db
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
     depends_on:
-      - db
+      - api-gateway
     volumes:
-      - ./conversation-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  analytics-service:
-    build:
-      context: .
-      dockerfile: analytics-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./analytics-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  notification-service:
-    build:
-      context: .
-      dockerfile: notification-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./notification-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  rate-limiting-service:
-    build:
-      context: .
-      dockerfile: rate-limiting-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./rate-limiting-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  proxy-service:
-    build:
-      context: .
-      dockerfile: proxy-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./proxy-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  observability-service:
-    build:
-      context: .
-      dockerfile: observability-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./observability-service/app:/app/app
-      - ./shared_lib:/shared_lib
+      - ./client:/app
+      - /app/node_modules
+      - /app/.next
 
   nginx:
     image: nginx:alpine
     ports:
       - "80:80"
+    env_file:
+      - .env
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
       - api-gateway
-
-  optimization-service:
-    build:
-      context: .
-      dockerfile: optimization-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./optimization-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  experimentation-service:
-    build:
-      context: .
-      dockerfile: experimentation-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./experimentation-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  recommendation-service:
-    build:
-      context: .
-      dockerfile: recommendation-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./recommendation-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  learning-service:
-    build:
-      context: .
-      dockerfile: learning-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./learning-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  organization-service:
-    build:
-      context: .
-      dockerfile: organization-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./organization-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  rbac-service:
-    build:
-      context: .
-      dockerfile: rbac-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./rbac-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  audit-service:
-    build:
-      context: .
-      dockerfile: audit-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./audit-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  platform-api-service:
-    build:
-      context: .
-      dockerfile: platform-api-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./platform-api-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  policy-service:
-    build:
-      context: .
-      dockerfile: policy-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./policy-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  billing-service:
-    build:
-      context: .
-      dockerfile: billing-service/Dockerfile
-    environment:
-      - REDIS_URL=redis://redis:6379/0
-      - POSTGRES_SERVER=db
-    depends_on:
-      - redis
-      - db
-    volumes:
-      - ./billing-service/app:/app/app
-      - ./shared_lib:/shared_lib
-
-  pipeline-service:
-    build:
-      context: .
-      dockerfile: pipeline-service/Dockerfile
-    environment:
-      - POSTGRES_SERVER=db
-    depends_on:
-      - db
-    volumes:
-      - ./pipeline-service/app:/app/app
-      - ./shared_lib:/shared_lib
 
 volumes:
   postgres_data:

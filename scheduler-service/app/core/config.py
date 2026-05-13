@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     POSTGRES_USER: str = "postgres"
     POSTGRES_PASSWORD: str = "postgres"
     POSTGRES_DB: str = "acquisition"
+    ALEMBIC_VERSION_TABLE: str = "alembic_version_scheduler_service"
     
     @property
     def DATABASE_URI(self) -> str:
@@ -20,6 +21,9 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"
         case_sensitive = True
 
 settings = Settings()
+
+

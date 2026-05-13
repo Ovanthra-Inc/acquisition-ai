@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Acquisition.ai - Conversations</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed": "#002113",
+                        "on-error-container": "#93000a",
+                        "outline": "#76777d",
+                        "secondary-fixed": "#dbe1ff",
+                        "surface-dim": "#d8dadc",
+                        "surface-container-highest": "#e0e3e5",
+                        "secondary": "#0051d5",
+                        "secondary-container": "#316bf3",
+                        "secondary-fixed-dim": "#b4c5ff",
+                        "on-surface": "#191c1e",
+                        "inverse-on-surface": "#eff1f3",
+                        "surface-container-low": "#f2f4f6",
+                        "on-secondary-fixed-variant": "#003ea8",
+                        "primary-fixed": "#dae2fd",
+                        "on-primary-container": "#7c839b",
+                        "primary-fixed-dim": "#bec6e0",
+                        "error-container": "#ffdad6",
+                        "outline-variant": "#c6c6cd",
+                        "on-surface-variant": "#45464d",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "on-tertiary-fixed-variant": "#005236",
+                        "background": "#f7f9fb",
+                        "on-tertiary-container": "#009668",
+                        "primary-container": "#131b2e",
+                        "surface-container-high": "#e6e8ea",
+                        "on-secondary-container": "#fefcff",
+                        "on-primary-fixed": "#131b2e",
+                        "on-background": "#191c1e",
+                        "inverse-primary": "#bec6e0",
+                        "tertiary": "#000000",
+                        "on-primary": "#ffffff",
+                        "surface-tint": "#565e74",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-fixed": "#6ffbbe",
+                        "surface": "#f7f9fb",
+                        "tertiary-fixed-dim": "#4edea3",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed": "#00174b",
+                        "surface-container": "#eceef0",
+                        "on-primary-fixed-variant": "#3f465c",
+                        "primary": "#000000",
+                        "on-secondary": "#ffffff",
+                        "surface-bright": "#f7f9fb",
+                        "surface-variant": "#e0e3e5",
+                        "tertiary-container": "#002113",
+                        "error": "#ba1a1a"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-page": "32px",
+                        "sidebar-width": "260px",
+                        "stack-lg": "24px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "gutter": "24px",
+                        "container-max": "1440px"
+                    },
+                    "fontFamily": {
+                        "display-xl": ["Inter"],
+                        "body-sm": ["Inter"],
+                        "metric-lg": ["Inter"],
+                        "heading-md": ["Inter"],
+                        "body-base": ["Inter"],
+                        "label-caps": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "metric-lg": ["30px", { "lineHeight": "38px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "heading-md": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "body-base": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "label-caps": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        /* Base styles to support the font family */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-on-background antialiased flex h-screen overflow-hidden">
+<!-- SideNavBar Component -->
+<nav class="bg-inverse-surface dark:bg-primary-container text-secondary-fixed dark:text-secondary-fixed-dim font-body-sm text-body-sm fixed left-0 top-0 h-screen w-sidebar-width no-border shadow-xl flex flex-col h-full py-stack-lg z-50">
+<!-- Header -->
+<div class="px-6 mb-8 flex items-center gap-3">
+<div class="w-8 h-8 rounded bg-secondary flex items-center justify-center">
+<span class="material-symbols-outlined text-on-secondary" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div>
+<h1 class="font-heading-md text-heading-md font-black text-secondary-fixed leading-tight">Acquisition HQ</h1>
+<p class="text-outline-variant font-body-sm text-[12px]">Enterprise Plan</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<div class="flex flex-col gap-1 flex-1 px-2">
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span>Recipes</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">person_search</span>
+<span>Leads</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span>Campaigns</span>
+</a>
+<!-- Active Tab -->
+<a class="flex items-center gap-3 bg-secondary-container/20 text-on-secondary-container border-l-4 border-secondary py-3 px-4 transition-all duration-200 ease-in-out rounded-r" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">forum</span>
+<span class="font-semibold">Conversations</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+<span>Pipeline</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span>Analytics</span>
+</a>
+<a class="flex items-center gap-3 text-outline-variant py-3 px-4 hover:text-surface-bright hover:bg-on-primary-fixed-variant transition-all duration-200 ease-in-out rounded" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+</div>
+<!-- CTA -->
+<div class="px-4 mt-auto">
+<button class="w-full bg-secondary/10 hover:bg-secondary/20 border border-secondary/30 text-secondary-fixed py-3 px-4 rounded font-semibold transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                Upgrade Power
+            </button>
+</div>
+</nav>
+<!-- Main Content Area -->
+<div class="flex-1 ml-[260px] flex flex-col h-full min-w-0">
+<!-- TopAppBar Component -->
+<header class="bg-surface-container-lowest dark:bg-surface-container-low font-body-base text-body-base docked full-width top-0 border-b border-outline-variant dark:border-outline shadow-sm flex justify-between items-center px-margin-page py-3 sticky top-0 z-40 shrink-0">
+<!-- Left Area: Search -->
+<div class="flex-1 max-w-md flex items-center bg-surface-container-low rounded px-3 py-2 border border-transparent focus-within:border-secondary focus-within:bg-surface-container-lowest transition-all">
+<span class="material-symbols-outlined text-outline-variant mr-2">search</span>
+<input class="w-full bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-outline-variant text-body-sm p-0" placeholder="Search conversations..." type="text"/>
+</div>
+<!-- Right Area: Actions -->
+<div class="flex items-center gap-4">
+<button class="text-secondary dark:text-secondary-fixed font-semibold hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors px-4 py-2 rounded scale-95 active:scale-90 transition-transform">
+                    Add Leads
+                </button>
+<button class="bg-secondary text-on-secondary font-semibold hover:bg-on-secondary-fixed-variant transition-colors px-4 py-2 rounded shadow-sm scale-95 active:scale-90 transition-transform shadow-[inset_0_-1px_0_rgba(0,0,0,0.1)]">
+                    Run Recipe
+                </button>
+<div class="w-px h-6 bg-outline-variant mx-2"></div>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full scale-95 active:scale-90 transition-transform">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="w-8 h-8 rounded-full overflow-hidden ml-2 border border-outline-variant shadow-sm">
+<img alt="User profile" class="w-full h-full object-cover" data-alt="A close-up, high-quality professional headshot of a modern corporate executive. The individual is a male with short dark hair, wearing a crisp, well-fitted dark navy blazer over a light blue dress shirt, subtly conveying an authoritative yet approachable 'quiet power' demeanor. The lighting is high-key and studio-quality, casting soft, flattering shadows that highlight sharp features. The background is a clean, out-of-focus light gray wall typical of a high-end, airy modern workspace, perfectly aligning with a premium, corporate modernism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWQlmR_zOyxneH9E3M7B_iILfKeiA31SQ1Ml2MNG0IeY6P_38mxAtbv_U9LmhdoRuauDg9IoNqoCdeaovzMyytqfffBbBhVV2r5MoDRRKBQKnj8MnxmBrH1C-wBvQtDNM_TTvAfBbj4x3ALatkph-1-dej0Mw4QicFjt3M_KMMK9PQYpD-WVqreYL7UnXxc5GGhDPLq3aJ-X5Z81Plw4PHC56atPZwh2AvKwYV_6XH6z6A6spwgaEWk1kjWYi-Yv3gHlB3eOi5fnQ"/>
+</div>
+</div>
+</header>
+<!-- Split View Layout -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Pane: Thread List -->
+<aside class="w-[340px] border-r border-outline-variant bg-surface-container-lowest flex flex-col shrink-0">
+<!-- Filters/Header -->
+<div class="p-4 border-b border-surface-container-highest flex justify-between items-center bg-surface-container-lowest">
+<div class="flex gap-2">
+<button class="px-3 py-1.5 rounded-full bg-secondary-container/10 text-secondary border border-secondary/20 font-body-sm text-[13px] font-semibold">Active</button>
+<button class="px-3 py-1.5 rounded-full text-on-surface-variant hover:bg-surface-container font-body-sm text-[13px] transition-colors">Unread</button>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface p-1 rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">filter_list</span>
+</button>
+</div>
+<!-- List Items (Scrollable) -->
+<div class="flex-1 overflow-y-auto">
+<!-- Active Thread -->
+<div class="p-4 border-b border-surface-container-highest bg-secondary/5 border-l-2 border-l-secondary cursor-pointer">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-body-base text-body-base font-semibold text-on-surface">Sarah Jenkins</h3>
+<span class="font-body-sm text-[12px] text-on-surface-variant">10:42 AM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mb-2 truncate">Re: Enterprise Data Integration proposal</p>
+<div class="flex justify-between items-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-tertiary-fixed text-on-tertiary-fixed uppercase tracking-wider">
+<span class="w-1.5 h-1.5 rounded-full bg-on-tertiary-fixed"></span> Interested
+                            </span>
+<div class="w-5 h-5 rounded-full bg-secondary flex items-center justify-center text-on-secondary text-[10px] font-bold shadow-sm">2</div>
+</div>
+</div>
+<!-- Inactive Thread -->
+<div class="p-4 border-b border-surface-container-highest hover:bg-surface-container-low cursor-pointer transition-colors border-l-2 border-l-transparent">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-body-base text-body-base font-medium text-on-surface">Michael Chang</h3>
+<span class="font-body-sm text-[12px] text-outline-variant">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline-variant mb-2 truncate">Question regarding the API rate limits...</p>
+<div class="flex justify-between items-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-surface-container-high text-on-surface-variant uppercase tracking-wider">
+                                Follow-up
+                            </span>
+</div>
+</div>
+<!-- Inactive Thread -->
+<div class="p-4 border-b border-surface-container-highest hover:bg-surface-container-low cursor-pointer transition-colors border-l-2 border-l-transparent">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-body-base text-body-base font-medium text-outline-variant">Elena Rodriguez</h3>
+<span class="font-body-sm text-[12px] text-outline-variant">Oct 12</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline-variant mb-2 truncate">Not a good time right now, thanks.</p>
+<div class="flex justify-between items-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-error-container/50 text-error uppercase tracking-wider">
+                                Not Interested
+                            </span>
+</div>
+</div>
+<!-- Inactive Thread -->
+<div class="p-4 border-b border-surface-container-highest hover:bg-surface-container-low cursor-pointer transition-colors border-l-2 border-l-transparent">
+<div class="flex justify-between items-start mb-1">
+<h3 class="font-body-base text-body-base font-medium text-on-surface">David Kim</h3>
+<span class="font-body-sm text-[12px] text-outline-variant">Oct 10</span>
+</div>
+<p class="font-body-sm text-body-sm text-outline-variant mb-2 truncate">Let's schedule a call for next week.</p>
+<div class="flex justify-between items-center">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold bg-primary-fixed text-on-primary-fixed uppercase tracking-wider">
+                                Meeting Set
+                            </span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Right Pane: Conversation View -->
+<section class="flex-1 flex flex-col bg-surface">
+<!-- Conversation Header -->
+<div class="px-6 py-4 bg-surface-container-lowest border-b border-outline-variant flex justify-between items-center shadow-[0_4px_6px_-1px_rgba(0,0,0,0.02)] z-10 shrink-0">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-heading-md shadow-sm">
+                            SJ
+                        </div>
+<div>
+<h2 class="font-heading-md text-[18px] font-bold text-on-surface leading-tight">Sarah Jenkins</h2>
+<p class="font-body-sm text-[13px] text-on-surface-variant flex items-center gap-1 mt-0.5">
+                                VP of Operations at TechFlow <span class="w-1 h-1 rounded-full bg-outline-variant mx-1"></span> sarah.j@techflow.io
+                            </p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="px-3 py-1.5 rounded border border-outline-variant text-on-surface-variant font-body-sm text-[13px] font-semibold hover:bg-surface-container-low transition-colors shadow-sm bg-surface-container-lowest">
+                            Mark Closed
+                        </button>
+<button class="px-3 py-1.5 rounded bg-secondary text-on-secondary font-body-sm text-[13px] font-semibold hover:bg-on-secondary-fixed-variant transition-colors shadow-sm shadow-[inset_0_-1px_0_rgba(0,0,0,0.1)]">
+                            Move to Pipeline
+                        </button>
+</div>
+</div>
+<!-- Messages Area (Scrollable) -->
+<div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6">
+<!-- System Action -->
+<div class="text-center font-body-sm text-[12px] text-outline-variant my-2 flex items-center justify-center gap-2">
+<span class="h-px w-8 bg-surface-container-highest block"></span>
+                        Automated Outreach Campaign Started • Oct 14, 9:00 AM
+                        <span class="h-px w-8 bg-surface-container-highest block"></span>
+</div>
+<!-- Sent Message (Right aligned) -->
+<div class="flex flex-col items-end w-full">
+<div class="flex items-end gap-2 max-w-[80%]">
+<div class="bg-surface-container-highest text-on-surface p-4 rounded-xl rounded-br-sm shadow-sm border border-outline-variant/50">
+<p class="font-body-base text-[14px] leading-relaxed">
+                                    Hi Sarah,<br/><br/>
+                                    I noticed TechFlow has been scaling your operations team recently. As you handle more data sources, integration bottlenecks often slow down decision-making.<br/><br/>
+                                    Acquisition.ai can automate these workflows, typically saving teams 15 hours a week. Open to a brief 10-min chat to see if there's a fit?
+                                </p>
+</div>
+</div>
+<span class="font-body-sm text-[11px] text-outline-variant mt-1 mr-1">You • Oct 14, 9:02 AM</span>
+</div>
+<!-- Received Message (Left aligned) -->
+<div class="flex flex-col items-start w-full">
+<div class="flex items-end gap-2 max-w-[80%]">
+<div class="w-8 h-8 rounded bg-primary-fixed flex items-center justify-center text-on-primary-fixed font-bold text-[12px] shrink-0 mb-1 shadow-sm">SJ</div>
+<div class="bg-surface-container-lowest text-on-surface p-4 rounded-xl rounded-bl-sm shadow-[0_4px_6px_-1px_rgba(0,0,0,0.05)] border border-[#E2E8F0]">
+<p class="font-body-base text-[14px] leading-relaxed">
+                                    Hi there,<br/><br/>
+                                    Timing is actually pretty good. We are struggling with siloed data right now. <br/><br/>
+                                    How does your platform handle custom API integrations with legacy CRMs? That's our biggest hurdle.
+                                </p>
+</div>
+</div>
+<span class="font-body-sm text-[11px] text-outline-variant mt-1 ml-10">Sarah Jenkins • Today, 10:42 AM</span>
+</div>
+</div>
+<!-- AI Suggestions & Composer (Sticky Bottom) -->
+<div class="bg-surface-container-lowest border-t border-outline-variant p-4 shrink-0 shadow-[0_-4px_15px_-3px_rgba(0,0,0,0.05)]">
+<!-- AI Suggestions -->
+<div class="mb-3">
+<div class="flex items-center gap-2 mb-2 px-1">
+<span class="material-symbols-outlined text-secondary text-[16px]">auto_awesome</span>
+<span class="font-label-caps text-label-caps text-secondary-container">Suggested Replies</span>
+</div>
+<div class="flex gap-2 overflow-x-auto pb-2 hide-scrollbar">
+<button class="shrink-0 max-w-[280px] text-left p-3 rounded-lg border border-secondary/20 bg-secondary/5 hover:bg-secondary/10 transition-colors shadow-sm group">
+<h4 class="font-body-sm font-semibold text-on-surface mb-1 flex justify-between items-center">
+                                    Direct Answer
+                                    <span class="material-symbols-outlined text-[14px] text-secondary opacity-0 group-hover:opacity-100 transition-opacity">send</span>
+</h4>
+<p class="font-body-sm text-[12px] text-on-surface-variant truncate">"We offer a visual mapping tool specifically designed for legacy API endpoints..."</p>
+</button>
+<button class="shrink-0 max-w-[280px] text-left p-3 rounded-lg border border-outline-variant bg-surface-container-lowest hover:bg-surface-container-low transition-colors shadow-sm">
+<h4 class="font-body-sm font-semibold text-on-surface mb-1">Push to Meeting</h4>
+<p class="font-body-sm text-[12px] text-on-surface-variant truncate">"Great question. It's highly customizable. Can I show you a 5-min demo of how..."</p>
+</button>
+</div>
+</div>
+<!-- Input Area -->
+<div class="bg-surface border border-outline-variant rounded-lg p-2 focus-within:border-secondary focus-within:ring-1 focus-within:ring-secondary transition-all shadow-[inset_0_1px_3px_rgba(0,0,0,0.02)]">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-on-surface resize-none p-2 font-body-base text-[14px] placeholder:text-outline-variant" placeholder="Type a reply or select a suggestion..." rows="3"></textarea>
+<div class="flex justify-between items-center mt-2 px-2 pb-1">
+<div class="flex gap-1">
+<button class="p-1.5 text-on-surface-variant hover:text-secondary rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">format_bold</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">attach_file</span>
+</button>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary rounded transition-colors">
+<span class="material-symbols-outlined text-[20px]">link</span>
+</button>
+<div class="w-px h-5 bg-outline-variant mx-1 my-auto"></div>
+<button class="p-1.5 text-on-surface-variant hover:text-secondary rounded transition-colors flex items-center gap-1 font-body-sm text-[12px] font-medium">
+<span class="material-symbols-outlined text-[16px]">event</span>
+                                    Insert Cal Link
+                                </button>
+</div>
+<button class="bg-secondary text-on-secondary px-5 py-2 rounded font-semibold text-body-sm flex items-center gap-2 hover:bg-on-secondary-fixed-variant transition-colors shadow-sm shadow-[inset_0_-1px_0_rgba(0,0,0,0.1)]">
+                                Send
+                                <span class="material-symbols-outlined text-[16px]">send</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+<style>
+        /* Utility to hide scrollbar for horizontal suggestion list */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>
