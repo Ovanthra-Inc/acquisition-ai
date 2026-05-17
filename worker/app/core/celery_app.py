@@ -7,7 +7,7 @@ celery_app = Celery(
     "worker",
     broker=redis_url,
     backend=redis_url,
-    include=["app.tasks.email_tasks", "app.tasks.agent_tasks"]
+    include=["app.tasks.email_tasks", "app.tasks.agent_tasks", "app.tasks.deliverability_tasks"]
 )
 
 celery_app.conf.task_routes = {

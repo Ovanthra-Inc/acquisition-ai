@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     
     INTERNAL_SERVICE_TOKEN: str = "supersecrettoken"
     DELIVERABILITY_SERVICE_URL: str = "http://marketing-service:8000"
+    API_GATEWAY_URL: str = "http://api-gateway:8000"
+    OPENAI_API_KEY: str = ""
+    OPENROUTER_API_KEY: str = ""
+    REDIS_URL: str = "redis://redis:6379/0"
 
     class Config:
         env_file = ".env"

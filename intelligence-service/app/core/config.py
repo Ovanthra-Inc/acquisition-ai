@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     
     REDIS_URL: str = "redis://redis:6379/0"
     INTERNAL_SERVICE_TOKEN: str = "supersecrettoken"
+    OPENAI_API_KEY: str = ""
     
     @property
     def DATABASE_URI(self) -> str:
@@ -24,6 +25,7 @@ class Settings(BaseSettings):
     ENRICHMENT_SERVICE_URL: str = "http://marketing-service:8000"
     CAMPAIGN_SERVICE_URL: str = "http://marketing-service:8000"
     AI_SERVICE_URL: str = "http://intelligence-service:8000"
+    EMAIL_SERVICE_URL: str = "http://comms-service:8000"
     CONVERSATION_SERVICE_URL: str = "http://comms-service:8000"
     ANALYTICS_SERVICE_URL: str = "http://ops-service:8000"
     SCHEDULER_SERVICE_URL: str = "http://scheduler-service:8000"

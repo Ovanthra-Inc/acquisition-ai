@@ -64,6 +64,7 @@ class EnrichmentService:
     def enrich(self, data: dict):
         website = data.get("website", "")
         website_text = data.get("website_text", "")
+        company_name = data.get("company_name", "")
         
         if not website and not website_text:
             return {"industry": "Unknown", "description": "", "pain_points": ""}
@@ -73,13 +74,22 @@ class EnrichmentService:
         if cached:
             return json.loads(cached)
         
+        # [NEW] Detect Tech Stack from text
+        tech_stack = self.detect_tech_stack(website_text)
+        
+        # [NEW] Simulate News Detection
+        recent_news = self.search_news(company_name or website)
+
         if not self.llm:
             logging.warning("OPENROUTER_API_KEY missing. Using fallback enrichment.")
             industry = "SaaS Startup" if website and ".io" in website else "Software"
             result = {
                 "industry": industry,
                 "description": f"Automated B2B solutions provider for {industry}",
-                "pain_points": "High CAC, low email deliverability, fragmented tools"
+                "pain_points": "High CAC, low email deliverability, fragmented tools",
+                "tech_stack": tech_stack,
+                "recent_news": recent_news,
+                "personalization_hooks": [f"I see you're using {tech_stack[0]}!" if tech_stack else "Great work on the recent growth!"]
             }
             redis_client.setex(cache_key, 3600, json.dumps(result))
             return result
@@ -88,11 +98,14 @@ class EnrichmentService:
         parser = JsonOutputParser()
         
         prompt = PromptTemplate.from_template(
-            """Analyze the following company data to determine their industry, a short description, and likely pain points.
+            """Analyze the following company data to determine their industry, description, pain points, and specific personalization triggers.
             Company Website: {website}
-            Company Website Text (Scraped): {website_text}
+            Scraped Text: {website_text}
+            Detected Tech: {tech_stack}
+            Recent News: {recent_news}
             
-            Return a valid JSON object with 'industry', 'description', and 'pain_points' keys.
+            Return a JSON object with:
+            'industry', 'description', 'pain_points', and 'personalization_hooks' (a list of 2-3 specific reasons to reach out).
             {format_instructions}
             """
         )
@@ -101,14 +114,42 @@ class EnrichmentService:
         try:
             result = chain.invoke({
                 "website": website, 
-                "website_text": website_text[:4000], # Truncate to avoid context window limits
+                "website_text": website_text[:4000],
+                "tech_stack": tech_stack,
+                "recent_news": recent_news,
                 "format_instructions": parser.get_format_instructions()
             })
+            result["tech_stack"] = tech_stack
+            result["recent_news"] = recent_news
             redis_client.setex(cache_key, 3600, json.dumps(result))
             return result
         except Exception as e:
             logging.error(f"Failed to enrich via LLM: {e}")
-            return {"industry": "Unknown", "description": "Failed to analyze", "pain_points": "Unknown"}
+            return {"industry": "Unknown", "description": "Failed to analyze", "pain_points": "Unknown", "tech_stack": tech_stack}
+
+    def detect_tech_stack(self, text: str) -> list:
+        """Detects technologies from website text using keyword matching."""
+        tech_keywords = {
+            "React": ["react", "next.js", "nextjs"],
+            "AWS": ["aws", "amazon web services", "s3", "ec2"],
+            "Salesforce": ["salesforce", "sfdc"],
+            "HubSpot": ["hubspot"],
+            "Stripe": ["stripe"],
+            "Kubernetes": ["kubernetes", "k8s", "docker"],
+            "Python": ["python", "django", "flask"],
+            "PostgreSQL": ["postgresql", "postgres"]
+        }
+        detected = []
+        text_lower = text.lower()
+        for tech, keywords in tech_keywords.items():
+            if any(kw in text_lower for kw in keywords):
+                detected.append(tech)
+        return detected
+
+    def search_news(self, query: str) -> str:
+        """Simulates searching for recent news about a company."""
+        # In a real app, hit a News API or Serper
+        return f"Recent expansion into new markets and focus on AI integration (Simulated for {query})"
 
     def score(self, data: dict):
         lead_data = data.get("lead_data", {})

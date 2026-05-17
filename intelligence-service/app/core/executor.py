@@ -243,6 +243,16 @@ async def _linkedin_connect(state, context, results, step):
     note = context.get("note", "I'd like to connect.")
     results[step] = await linkedin_connect(state, target_id, note)
 
+async def _search_company_news(state, context, results, step):
+    company_name = context.get("company_name") or state.get("results", {}).get("search_leads", [{}])[0].get("company_name")
+    if company_name:
+        results[step] = await search_company_news(state, company_name)
+
+async def _analyze_tech_stack(state, context, results, step):
+    website_text = context.get("website_text") or state.get("results", {}).get("crawl_website", "")
+    if website_text:
+        results[step] = await analyze_tech_stack(state, website_text)
+
 TOOL_REGISTRY = {
     "search_leads": _search_leads,
     "enrich_lead": _enrich_lead,
@@ -285,6 +295,8 @@ TOOL_REGISTRY = {
     "send_linkedin_message": _send_linkedin_message,
     "send_slack_message": _send_slack_message,
     "linkedin_connect": _linkedin_connect,
+    "search_company_news": _search_company_news,
+    "analyze_tech_stack": _analyze_tech_stack,
 }
 
 class ExecutorNode:

@@ -8,3 +8,5 @@ alembic
 httpx
 python-multipart
 email-validator
+langchain_openai
+langchain_core

@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 import { ThemeProvider } from "@/components/theme-provider"
 import StoreProvider from "./StoreProvider"
 import QueryProvider from "./QueryProvider"
+import { Toaster } from "sonner"
+import NotificationListener from "@/components/NotificationListener"
 
 export default function RootLayout({
   children,
@@ -38,6 +40,8 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <Toaster position="top-right" richColors />
+              <NotificationListener />
             </ThemeProvider>
           </QueryProvider>
         </StoreProvider>

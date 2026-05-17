@@ -96,6 +96,7 @@ services:
     build:
       context: .
       dockerfile: worker/Dockerfile
+    command: ["celery", "-A", "app.core.celery_app", "worker", "--loglevel=info"]
     environment:
       - REDIS_URL=redis://redis:6379/0
     depends_on:

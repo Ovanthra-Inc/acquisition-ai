@@ -1,3 +1,4 @@
+from fastapi import APIRouter
 from app.api.v1.endpoints import emails, notifications, conversations, social
 
 api_router = APIRouter()

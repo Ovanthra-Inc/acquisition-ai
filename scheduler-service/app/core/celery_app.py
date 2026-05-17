@@ -21,5 +21,15 @@ celery_app.conf.update(
             "task": "app.tasks.scheduler_tasks.poll_scheduled_jobs",
             "schedule": 60.0,
         },
+        "check-domain-reputation-daily": {
+            "task": "app.tasks.deliverability_tasks.check_reputation_task",
+            "schedule": 86400.0, # 24 hours
+            "args": ("ovanthra.com",)
+        },
+        "dispatch-warmup-emails-every-6h": {
+            "task": "app.tasks.deliverability_tasks.warmup_dispatch_task",
+            "schedule": 21600.0, # 6 hours
+            "args": ("ovanthra.com", 15)
+        },
     },
 )

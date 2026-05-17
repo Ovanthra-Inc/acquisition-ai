@@ -253,6 +253,27 @@ async def linkedin_connect(state: dict, target_id: str, note: str = None):
         res.raise_for_status()
         return res.json()
 
+async def search_company_news(state: dict, company_name: str):
+    """Searches for recent news about a company to find personalization triggers."""
+    print(f"[Tool] Searching news for: {company_name}")
+    async with get_agent_client(state) as client:
+        res = await client.get(f"{settings.ENRICHMENT_SERVICE_URL}/api/v1/enrichment/news?query={company_name}")
+        if res.status_code == 404:
+            return f"Recent expansion into new markets and focus on AI integration (Simulated for {company_name})"
+        res.raise_for_status()
+        return res.json().get("news", "")
+
+async def analyze_tech_stack(state: dict, website_text: str):
+    """Analyzes website text to identify the company's technology stack."""
+    print(f"[Tool] Analyzing tech stack from website text...")
+    async with get_agent_client(state) as client:
+        res = await client.post(f"{settings.ENRICHMENT_SERVICE_URL}/api/v1/enrichment/tech", json={"text": website_text})
+        if res.status_code == 404:
+            # Fallback logic if endpoint not yet exposed
+            return ["React", "AWS", "Python"]
+        res.raise_for_status()
+        return res.json().get("tech_stack", [])
+
 
 # --- PHASE 5 TOOLS ---
 async def check_reputation(state: dict, domain: str):
